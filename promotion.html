@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>승진 관리 - 교원 인사 관리 시스템</title>
+    <link rel="stylesheet" href="css/common.css">
+    <link rel="stylesheet" href="css/navigation.css">
+    <link rel="stylesheet" href="css/print.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <style>
+        body {
+            padding-top: 60px;
+            padding-bottom: 40px;
+        }
+
+        .page-header {
+            background: var(--bg-primary);
+            border-bottom: 1px solid var(--border-color);
+            padding: var(--spacing-lg) 0;
+            margin-bottom: var(--spacing-lg);
+        }
+
+        .page-title {
+            font-size: var(--font-size-2xl);
+            font-weight: 600;
+            margin: 0;
+        }
+
+        .date-control-section {
+            background: var(--bg-primary);
+            padding: var(--spacing-lg);
+            border-radius: var(--radius-md);
+            margin-bottom: var(--spacing-lg);
+            border: 1px solid var(--border-color);
+        }
+
+        .date-selector {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-md);
+            flex-wrap: wrap;
+        }
+
+        .next-promotion-info {
+            margin-top: var(--spacing-md);
+            padding: var(--spacing-md);
+            background: var(--bg-secondary);
+            border-radius: var(--radius-sm);
+        }
+
+        .next-promotion-info strong {
+            color: var(--color-primary);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: var(--spacing-md);
+            margin-bottom: var(--spacing-lg);
+        }
+
+        .stat-card {
+            background: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: var(--spacing-lg);
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: var(--font-size-3xl);
+            font-weight: 700;
+            color: var(--color-primary);
+            margin-bottom: var(--spacing-xs);
+        }
+
+        .stat-label {
+            font-size: var(--font-size-sm);
+            color: var(--text-secondary);
+        }
+
+        .upload-section {
+            background: var(--bg-primary);
+            border: 2px dashed var(--border-color);
+            border-radius: var(--radius-md);
+            padding: var(--spacing-xl);
+            text-align: center;
+            margin-bottom: var(--spacing-lg);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .upload-section:hover {
+            border-color: var(--color-primary);
+            background: var(--bg-secondary);
+        }
+
+        .upload-section input {
+            display: none;
+        }
+
+        .search-controls {
+            display: flex;
+            gap: var(--spacing-md);
+            margin-bottom: var(--spacing-md);
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .search-controls .form-control {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .filter-buttons {
+            display: flex;
+            gap: var(--spacing-sm);
+            flex-wrap: wrap;
+        }
+
+        .filter-btn {
+            padding: var(--spacing-sm) var(--spacing-md);
+            border: 1px solid var(--border-color);
+            background: var(--bg-secondary);
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            font-size: var(--font-size-sm);
+            transition: all 0.15s ease;
+        }
+
+        .filter-btn:hover,
+        .filter-btn.active {
+            background: var(--color-primary);
+            color: white;
+            border-color: var(--color-primary);
+        }
+
+        .table-wrapper {
+            overflow-x: auto;
+            border-radius: var(--radius-md);
+            border: 1px solid var(--border-color);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: var(--spacing-xl);
+            color: var(--text-muted);
+        }
+
+        .badge-urgent {
+            background-color: var(--color-danger);
+            color: white;
+        }
+
+        .badge-warning {
+            background-color: var(--color-warning);
+            color: var(--text-primary);
+        }
+
+        .badge-normal {
+            background-color: var(--color-success);
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <!-- 네비게이션 바 -->
+    <nav class="navbar">
+        <div class="navbar-container">
+            <a href="index.html" class="navbar-brand">교원 인사 관리 시스템</a>
+            <button class="navbar-toggle" aria-label="메뉴 토글">
+                <span class="navbar-toggle-icon"></span>
+            </button>
+            <ul class="navbar-menu">
+                <li class="navbar-item">
+                    <a href="index.html" class="navbar-link" data-page="dashboard">대시보드</a>
+                </li>
+                <li class="navbar-item">
+                    <a href="promotion.html" class="navbar-link" data-page="promotion">승진</a>
+                </li>
+                <li class="navbar-item">
+                    <a href="reappointment.html" class="navbar-link" data-page="reappointment">재임용</a>
+                </li>
+                <li class="navbar-item">
+                    <a href="regulations.html" class="navbar-link" data-page="regulations">규정 관리</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- 페이지 헤더 -->
+    <div class="page-header no-print">
+        <div class="container">
+            <h1 class="page-title">승진 관리</h1>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- 기준 날짜 및 다음 승진 정보 -->
+        <div class="date-control-section no-print">
+            <div class="date-selector">
+                <label for="baseDate" class="form-label mb-0">기준 날짜:</label>
+                <input type="date" id="baseDate" class="form-control" style="width: auto;">
+                <button class="btn btn-secondary btn-sm" onclick="setToday()">오늘</button>
+                <a href="promotion-process.html" class="btn btn-outline btn-sm">📋 프로세스 보기</a>
+            </div>
+            <div class="next-promotion-info" id="nextPromotionInfo">
+                기준 날짜를 선택하세요
+            </div>
+        </div>
+
+        <!-- 통계 카드 -->
+        <div class="stats-grid no-print">
+            <div class="stat-card">
+                <div class="stat-number" id="aprilCount">-</div>
+                <div class="stat-label">4월 승진 대상</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="octoberCount">-</div>
+                <div class="stat-label">10월 승진 대상</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="urgentCount">-</div>
+                <div class="stat-label">마감 임박 (D-30)</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="totalCount">-</div>
+                <div class="stat-label">전체 대상자</div>
+            </div>
+        </div>
+
+        <!-- 엑셀 업로드 -->
+        <div class="upload-section no-print" onclick="document.getElementById('fileInput').click()">
+            <input type="file" id="fileInput" accept=".xlsx,.xls" onchange="loadExcelFile(event)">
+            <div style="font-size: var(--font-size-lg); margin-bottom: var(--spacing-xs);">
+                📊 교원현황 엑셀 파일 업로드
+            </div>
+            <div style="font-size: var(--font-size-sm); color: var(--text-secondary);">
+                클릭하거나 파일을 드래그하여 업로드하세요
+            </div>
+        </div>
+
+        <!-- 검색 및 필터 -->
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">승진 대상자 목록</h3>
+            </div>
+            <div class="card-body">
+                <div class="search-controls no-print">
+                    <input type="text" id="searchBox" class="form-control" placeholder="교원명, 소속, 직급 검색..." onkeyup="filterTable()">
+                    <div class="filter-buttons">
+                        <button class="filter-btn active" onclick="filterByPeriod('all')">전체</button>
+                        <button class="filter-btn" onclick="filterByPeriod('april')">4월 승진</button>
+                        <button class="filter-btn" onclick="filterByPeriod('october')">10월 승진</button>
+                        <button class="filter-btn" onclick="filterByPeriod('urgent')">마감 임박</button>
+                    </div>
+                    <button class="btn btn-primary btn-sm" onclick="printPromotionList()">📄 인쇄</button>
+                </div>
+
+                <div class="table-wrapper">
+                    <table class="table" id="promotionTable">
+                        <thead>
+                            <tr>
+                                <th>성명</th>
+                                <th>소속</th>
+                                <th>현직급</th>
+                                <th>임용일</th>
+                                <th>재직기간</th>
+                                <th>승진예정일</th>
+                                <th>서류마감</th>
+                                <th>D-Day</th>
+                                <th>상태</th>
+                            </tr>
+                        </thead>
+                        <tbody id="promotionTableBody">
+                            <tr>
+                                <td colspan="9" class="empty-state">
+                                    엑셀 파일을 업로드하여 데이터를 불러오세요
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- 인쇄용 헤더 (화면에서는 숨김) -->
+        <div class="print-only print-header">
+            <h1>승진 심사 대상자 명단</h1>
+            <div class="print-info">
+                <p>기준일: <span id="printBaseDate"></span></p>
+                <p>승진예정일: <span id="printPromotionDate"></span></p>
+            </div>
+        </div>
+
+        <!-- 인쇄용 푸터 (화면에서는 숨김) -->
+        <div class="print-only print-footer">
+            <p>발행일: <span id="printDate"></span></p>
+            <p>발행: 교무처</p>
+        </div>
+    </div>
+
+    <!-- JavaScript -->
+    <script src="js/common.js"></script>
+    <script src="js/navigation.js"></script>
+    <script src="js/promotion-engine.js"></script>
+    <script>
+        let facultyData = [];
+        let promotionCandidates = [];
+        let filteredCandidates = [];
+        let currentBaseDate = new Date();
+        let promotionEngine = null;
+
+        // 페이지 로드 시 초기화
+        document.addEventListener('DOMContentLoaded', function() {
+            setToday();
+        });
+
+        // 오늘 날짜로 설정
+        function setToday() {
+            currentBaseDate = new Date();
+            document.getElementById('baseDate').value = DateUtils.formatDateForInput(currentBaseDate);
+            updatePromotionEngine();
+        }
+
+        // 기준 날짜 변경
+        document.getElementById('baseDate')?.addEventListener('change', function(e) {
+            if (e.target.value) {
+                const parts = e.target.value.split('-');
+                currentBaseDate = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
+                updatePromotionEngine();
+            }
+        });
+
+        // 승진 엔진 업데이트
+        function updatePromotionEngine() {
+            promotionEngine = new PromotionEngine(currentBaseDate);
+            updateNextPromotionInfo();
+
+            if (facultyData.length > 0) {
+                calculatePromotions();
+            }
+        }
+
+        // 다음 승진 정보 업데이트
+        function updateNextPromotionInfo() {
+            const nextPeriod = promotionEngine.getNextPromotionPeriod();
+            const infoElement = document.getElementById('nextPromotionInfo');
+
+            const promotionDateStr = DateUtils.formatDate(nextPeriod.promotionDate);
+            const deadlineStr = DateUtils.formatDate(nextPeriod.deadline);
+            const daysUntilPromotion = DateUtils.getDaysUntil(nextPeriod.promotionDate, currentBaseDate);
+            const daysUntilDeadline = DateUtils.getDaysUntil(nextPeriod.deadline, currentBaseDate);
+
+            infoElement.innerHTML = `
+                <div style="display: flex; gap: var(--spacing-xl); flex-wrap: wrap;">
+                    <div>
+                        <strong>다음 승진일:</strong> ${promotionDateStr}
+                        <span class="badge badge-primary">${daysUntilPromotion}일 남음</span>
+                    </div>
+                    <div>
+                        <strong>서류 마감일:</strong> ${deadlineStr}
+                        <span class="badge ${daysUntilDeadline <= 30 ? 'badge-danger' : 'badge-secondary'}">
+                            ${daysUntilDeadline}일 남음
+                        </span>
+                    </div>
+                </div>
+            `;
+        }
+
+        // 엑셀 파일 로드
+        async function loadExcelFile(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+
+                    const firstSheetName = workbook.SheetNames[0];
+                    const worksheet = workbook.Sheets[firstSheetName];
+                    const rawData = XLSX.utils.sheet_to_json(worksheet, {header: 1});
+
+                    // 헤더 찾기
+                    let headerRowIndex = -1;
+                    let headers = [];
+
+                    for (let i = 0; i < rawData.length; i++) {
+                        if (rawData[i] && rawData[i][0] === 'No.' && rawData[i].includes('성명')) {
+                            headerRowIndex = i;
+                            headers = rawData[i];
+                            break;
+                        }
+                    }
+
+                    if (headerRowIndex === -1) {
+                        throw new Error('헤더를 찾을 수 없습니다.');
+                    }
+
+                    // 데이터 추출
+                    const actualDataRows = rawData.slice(headerRowIndex + 1).filter(row =>
+                        row && row.length > 0 && row[0] && typeof row[0] === 'number'
+                    );
+
+                    // 객체 배열로 변환
+                    const jsonData = actualDataRows.map(row => {
+                        const obj = {};
+                        headers.forEach((header, index) => {
+                            obj[header] = row[index];
+                        });
+                        return obj;
+                    });
+
+                    // 재직중인 전임교원만 필터링
+                    facultyData = jsonData.filter(teacher => {
+                        const workStatus = teacher['재직구분'];
+                        const position = teacher['직렬'];
+                        return workStatus && workStatus.toString().includes('재직') &&
+                               position && position.toString().includes('전임교원');
+                    });
+
+                    if (facultyData.length === 0) {
+                        alert('재직중인 전임교원 데이터가 없습니다.');
+                        return;
+                    }
+
+                    // 로컬 스토리지에 저장
+                    StorageUtils.set('facultyData', facultyData);
+                    StorageUtils.set('lastUploadDate', new Date().toISOString());
+
+                    calculatePromotions();
+
+                } catch (error) {
+                    console.error('파일 처리 오류:', error);
+                    alert('파일 읽기 중 오류가 발생했습니다: ' + error.message);
+                }
+            };
+
+            reader.readAsArrayBuffer(file);
+        }
+
+        // 승진 대상자 계산
+        function calculatePromotions() {
+            if (!promotionEngine) {
+                promotionEngine = new PromotionEngine(currentBaseDate);
+            }
+
+            promotionCandidates = promotionEngine.calculateAllPromotions(facultyData);
+            filteredCandidates = [...promotionCandidates];
+
+            updateStatistics();
+            updateTable();
+        }
+
+        // 통계 업데이트
+        function updateStatistics() {
+            const stats = promotionEngine.calculateStatistics(promotionCandidates);
+
+            document.getElementById('totalCount').textContent = stats.total;
+            document.getElementById('aprilCount').textContent = stats.aprilCount;
+            document.getElementById('octoberCount').textContent = stats.octoberCount;
+            document.getElementById('urgentCount').textContent = stats.urgentCount;
+        }
+
+        // 테이블 업데이트
+        function updateTable() {
+            const tbody = document.getElementById('promotionTableBody');
+            tbody.innerHTML = '';
+
+            if (filteredCandidates.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="9" class="empty-state">
+                            ${promotionCandidates.length === 0 ? '승진 대상자가 없습니다.' : '검색 결과가 없습니다.'}
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            filteredCandidates.forEach(candidate => {
+                const teacher = candidate.teacher;
+                const info = candidate.promotionInfo;
+
+                const row = document.createElement('tr');
+
+                // 상태 배지
+                let statusBadge = '';
+                if (info.daysUntilDeadline !== null && info.daysUntilDeadline <= 30 && info.daysUntilDeadline >= 0) {
+                    statusBadge = '<span class="badge badge-urgent">긴급</span>';
+                } else if (info.daysUntilDeadline !== null && info.daysUntilDeadline <= 60) {
+                    statusBadge = '<span class="badge badge-warning">주의</span>';
+                } else {
+                    statusBadge = '<span class="badge badge-normal">정상</span>';
+                }
+
+                row.innerHTML = `
+                    <td>${teacher['성명'] || '-'}</td>
+                    <td>${teacher['소속'] || '-'}</td>
+                    <td>${info.currentRank || '-'}</td>
+                    <td>${DateUtils.formatDate(DateUtils.parseDate(teacher['전임교원최초임용일'] || teacher['전임교원\n최초임용일']))}</td>
+                    <td>${info.yearsInRank ? info.yearsInRank + '년' : '-'}</td>
+                    <td>${DateUtils.formatDate(info.nextPromotionDate)}</td>
+                    <td>${DateUtils.formatDate(info.submissionDeadline)}</td>
+                    <td>${info.daysUntilDeadline !== null ? 'D-' + info.daysUntilDeadline : '-'}</td>
+                    <td>${statusBadge}</td>
+                `;
+
+                tbody.appendChild(row);
+            });
+        }
+
+        // 검색 필터
+        function filterTable() {
+            const searchTerm = document.getElementById('searchBox').value.toLowerCase();
+
+            filteredCandidates = promotionCandidates.filter(candidate => {
+                const teacher = candidate.teacher;
+                const name = (teacher['성명'] || '').toLowerCase();
+                const department = (teacher['소속'] || '').toLowerCase();
+                const rank = (teacher['직급'] || '').toLowerCase();
+
+                return name.includes(searchTerm) ||
+                       department.includes(searchTerm) ||
+                       rank.includes(searchTerm);
+            });
+
+            updateTable();
+        }
+
+        // 승진 시기별 필터
+        function filterByPeriod(period) {
+            // 버튼 활성화
+            document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+
+            if (period === 'all') {
+                filteredCandidates = [...promotionCandidates];
+            } else if (period === 'urgent') {
+                filteredCandidates = promotionCandidates.filter(candidate => {
+                    const daysUntilDeadline = candidate.promotionInfo.daysUntilDeadline;
+                    return daysUntilDeadline !== null && daysUntilDeadline <= 30 && daysUntilDeadline >= 0;
+                });
+            } else {
+                const stats = promotionEngine.calculateStatistics(promotionCandidates);
+                filteredCandidates = stats.groups[period] || [];
+            }
+
+            updateTable();
+        }
+
+        // 인쇄
+        function printPromotionList() {
+            // 인쇄용 정보 업데이트
+            document.getElementById('printBaseDate').textContent = DateUtils.formatDate(currentBaseDate);
+
+            const nextPeriod = promotionEngine.getNextPromotionPeriod();
+            document.getElementById('printPromotionDate').textContent = DateUtils.formatDate(nextPeriod.promotionDate);
+            document.getElementById('printDate').textContent = DateUtils.formatDate(new Date());
+
+            // 인쇄
+            window.print();
+        }
+
+        // 파일 드래그 앤 드롭
+        const uploadSection = document.querySelector('.upload-section');
+
+        uploadSection.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadSection.style.borderColor = 'var(--color-primary)';
+        });
+
+        uploadSection.addEventListener('dragleave', (e) => {
+            e.preventDefault();
+            uploadSection.style.borderColor = 'var(--border-color)';
+        });
+
+        uploadSection.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadSection.style.borderColor = 'var(--border-color)';
+
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                const event = { target: { files: [files[0]] } };
+                loadExcelFile(event);
+            }
+        });
+
+        // 페이지 로드 시 저장된 데이터 복원
+        window.addEventListener('load', () => {
+            const savedData = StorageUtils.get('facultyData');
+            if (savedData) {
+                facultyData = savedData;
+                calculatePromotions();
+            }
+        });
+    </script>
+</body>
+</html>

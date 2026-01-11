@@ -1,0 +1,186 @@
+/**
+ * 인쇄용 스타일 (A4 최적화)
+ */
+
+@media print {
+    /* 페이지 설정 */
+    @page {
+        size: A4;
+        margin: 20mm;
+    }
+
+    /* 인쇄 시 숨김 요소 */
+    .no-print,
+    .navbar,
+    .btn,
+    button,
+    .form-control,
+    .search-controls,
+    .filter-buttons,
+    input[type="date"] {
+        display: none !important;
+    }
+
+    /* 인쇄 시만 표시 */
+    .print-only {
+        display: block !important;
+    }
+
+    /* 기본 스타일 재설정 */
+    body {
+        background: white;
+        color: black;
+        font-size: 11pt;
+        line-height: 1.4;
+    }
+
+    .container {
+        max-width: 100%;
+        padding: 0;
+    }
+
+    /* 카드 스타일 조정 */
+    .card {
+        box-shadow: none;
+        border: 1px solid #ddd;
+        page-break-inside: avoid;
+        margin-bottom: 10mm;
+    }
+
+    /* 테이블 스타일 */
+    .table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 10pt;
+    }
+
+    .table th,
+    .table td {
+        border: 1px solid #333;
+        padding: 6px 8px;
+    }
+
+    .table th {
+        background-color: #f0f0f0 !important;
+        font-weight: bold;
+    }
+
+    /* 페이지 나누기 */
+    .page-break {
+        page-break-after: always;
+    }
+
+    .page-break-avoid {
+        page-break-inside: avoid;
+    }
+
+    /* 제목 스타일 */
+    h1, h2, h3 {
+        page-break-after: avoid;
+    }
+
+    /* 링크 스타일 */
+    a {
+        text-decoration: none;
+        color: black;
+    }
+
+    /* 인쇄 헤더 */
+    .print-header {
+        text-align: center;
+        margin-bottom: 10mm;
+        padding-bottom: 5mm;
+        border-bottom: 2px solid #000;
+    }
+
+    .print-header h1 {
+        font-size: 18pt;
+        margin-bottom: 5mm;
+    }
+
+    .print-header .print-info {
+        font-size: 10pt;
+        color: #666;
+    }
+
+    /* 인쇄 푸터 */
+    .print-footer {
+        margin-top: 10mm;
+        padding-top: 5mm;
+        border-top: 1px solid #ddd;
+        text-align: center;
+        font-size: 9pt;
+        color: #666;
+    }
+
+    /* 통계 카드 (인쇄용) */
+    .stats-print {
+        display: flex;
+        justify-content: space-around;
+        margin-bottom: 10mm;
+        page-break-inside: avoid;
+    }
+
+    .stat-print-item {
+        text-align: center;
+        flex: 1;
+        border: 1px solid #ddd;
+        padding: 5mm;
+    }
+
+    .stat-print-item .number {
+        font-size: 16pt;
+        font-weight: bold;
+    }
+
+    .stat-print-item .label {
+        font-size: 9pt;
+        color: #666;
+    }
+
+    /* 배지 스타일 조정 */
+    .badge {
+        border: 1px solid #000;
+        padding: 2px 6px;
+        font-size: 9pt;
+    }
+
+    /* 여백 조정 */
+    .mb-3, .mb-4, .mb-5 {
+        margin-bottom: 5mm !important;
+    }
+
+    .mt-3, .mt-4, .mt-5 {
+        margin-top: 5mm !important;
+    }
+}
+
+/* 인쇄 전용 컴포넌트 (화면에서는 숨김) */
+.print-only {
+    display: none;
+}
+
+/* 인쇄 레이아웃 클래스 */
+.print-document {
+    background: white;
+    padding: 20mm;
+}
+
+.print-signature-area {
+    margin-top: 15mm;
+    display: flex;
+    justify-content: space-between;
+}
+
+.print-signature-box {
+    width: 30%;
+    text-align: center;
+    padding-top: 10mm;
+    border-top: 1px solid #000;
+}
+
+@media print {
+    .print-signature-area {
+        page-break-inside: avoid;
+    }
+}
