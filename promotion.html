@@ -372,17 +372,30 @@
         // 엑셀 파일 로드
         async function loadExcelFile(event) {
             const file = event.target.files[0];
-            if (!file) return;
+            console.log('파일 선택됨:', file);
 
+            if (!file) {
+                console.log('파일이 선택되지 않음');
+                return;
+            }
+
+            console.log('파일 읽기 시작:', file.name);
             const reader = new FileReader();
             reader.onload = function(e) {
                 try {
+                    console.log('파일 읽기 완료, 파싱 시작');
                     const data = new Uint8Array(e.target.result);
                     const workbook = XLSX.read(data, { type: 'array' });
 
+                    console.log('엑셀 시트 수:', workbook.SheetNames.length);
                     const firstSheetName = workbook.SheetNames[0];
+                    console.log('첫 번째 시트:', firstSheetName);
+
                     const worksheet = workbook.Sheets[firstSheetName];
                     const rawData = XLSX.utils.sheet_to_json(worksheet, {header: 1});
+
+                    console.log('전체 행 수:', rawData.length);
+                    console.log('첫 5행:', rawData.slice(0, 5));
 
                     // 헤더 찾기
                     let headerRowIndex = -1;
@@ -392,11 +405,13 @@
                         if (rawData[i] && rawData[i][0] === 'No.' && rawData[i].includes('성명')) {
                             headerRowIndex = i;
                             headers = rawData[i];
+                            console.log('헤더 찾음 (행:', i, '):', headers);
                             break;
                         }
                     }
 
                     if (headerRowIndex === -1) {
+                        console.error('헤더를 찾을 수 없습니다. 첫 10행:', rawData.slice(0, 10));
                         throw new Error('헤더를 찾을 수 없습니다.');
                     }
 
@@ -414,6 +429,9 @@
                         return obj;
                     });
 
+                    console.log('전체 데이터 행 수:', jsonData.length);
+                    console.log('첫 번째 교원 데이터:', jsonData[0]);
+
                     // 재직중인 전임교원만 필터링
                     facultyData = jsonData.filter(teacher => {
                         const workStatus = teacher['재직구분'];
@@ -421,6 +439,8 @@
                         return workStatus && workStatus.toString().includes('재직') &&
                                position && position.toString().includes('전임교원');
                     });
+
+                    console.log('필터링 후 전임교원 수:', facultyData.length);
 
                     if (facultyData.length === 0) {
                         alert('재직중인 전임교원 데이터가 없습니다.');
@@ -431,6 +451,7 @@
                     StorageUtils.set('facultyData', facultyData);
                     StorageUtils.set('lastUploadDate', new Date().toISOString());
 
+                    console.log('승진 대상자 계산 시작');
                     calculatePromotions();
 
                 } catch (error) {
@@ -448,7 +469,10 @@
                 promotionEngine = new PromotionEngine(currentBaseDate);
             }
 
+            console.log('전체 교원 수:', facultyData.length);
             promotionCandidates = promotionEngine.calculateAllPromotions(facultyData);
+            console.log('승진 대상자 수:', promotionCandidates.length);
+
             filteredCandidates = [...promotionCandidates];
 
             updateStatistics();
@@ -497,11 +521,15 @@
                     statusBadge = '<span class="badge badge-normal">정상</span>';
                 }
 
+                // 임용일 가져오기 (헤더명 정규화 처리)
+                const firstAppointmentField = promotionEngine.getTeacherValue(teacher, '전임교원\n최초임용일');
+                const firstAppointmentDate = DateUtils.parseDate(firstAppointmentField);
+
                 row.innerHTML = `
                     <td>${teacher['성명'] || '-'}</td>
                     <td>${teacher['소속'] || '-'}</td>
                     <td>${info.currentRank || '-'}</td>
-                    <td>${DateUtils.formatDate(DateUtils.parseDate(teacher['전임교원최초임용일'] || teacher['전임교원\n최초임용일']))}</td>
+                    <td>${DateUtils.formatDate(firstAppointmentDate)}</td>
                     <td>${info.yearsInRank ? info.yearsInRank + '년' : '-'}</td>
                     <td>${DateUtils.formatDate(info.nextPromotionDate)}</td>
                     <td>${DateUtils.formatDate(info.submissionDeadline)}</td>
