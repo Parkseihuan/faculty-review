@@ -191,16 +191,32 @@ class PromotionEngine {
     isPromotionCandidate(teacher) {
         // 1. 직급 확인 (교수는 제외)
         const rank = teacher['직급'];
-        if (!rank || rank.includes('교수')) return false;
+
+        // 교수가 아닌 조교수, 부교수만 대상
+        if (!rank) {
+            console.log('직급 없음:', teacher['성명']);
+            return false;
+        }
+
+        // 교수는 더 이상 승진이 없음
+        if (rank.includes('교수') && !rank.includes('조교수') && !rank.includes('부교수')) {
+            return false;
+        }
 
         // 2. 다음 승진일 계산
         const nextPromotionDate = this.getNextPromotionDate(teacher);
-        if (!nextPromotionDate) return false;
+        if (!nextPromotionDate) {
+            console.log('승진일 없음:', teacher['성명'], rank);
+            return false;
+        }
 
         // 3. 승진 제한 사유 확인
         const restriction = this.checkPromotionRestrictions(teacher);
-        if (restriction.isRestricted) return false;
+        if (restriction.isRestricted) {
+            return false;
+        }
 
+        console.log('✅ 승진 대상자:', teacher['성명'], rank, '→ 승진일:', this.adjustToPromotionDate(nextPromotionDate));
         return true;
     }
 
@@ -281,10 +297,26 @@ class PromotionEngine {
      * 모든 교원의 승진 정보 계산
      */
     calculateAllPromotions(facultyData) {
-        return facultyData.map(teacher => ({
+        console.log('=== 승진 대상자 계산 시작 ===');
+        console.log('전체 교원 수:', facultyData.length);
+
+        // 직급별 통계
+        const rankStats = {};
+        facultyData.forEach(t => {
+            const rank = t['직급'] || '직급없음';
+            rankStats[rank] = (rankStats[rank] || 0) + 1;
+        });
+        console.log('직급별 통계:', rankStats);
+
+        const results = facultyData.map(teacher => ({
             teacher,
             promotionInfo: this.getPromotionInfo(teacher)
         })).filter(item => item.promotionInfo.isCandidate);
+
+        console.log('최종 승진 대상자 수:', results.length);
+        console.log('=== 승진 대상자 계산 완료 ===');
+
+        return results;
     }
 
     /**
