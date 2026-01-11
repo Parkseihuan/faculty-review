@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>승진 프로세스 안내 - 교원 인사 관리 시스템</title>
+    <link rel="stylesheet" href="css/common.css">
+    <link rel="stylesheet" href="css/navigation.css">
+    <style>
+        body {
+            padding-top: 60px;
+        }
+
+        .page-header {
+            background: var(--bg-primary);
+            border-bottom: 1px solid var(--border-color);
+            padding: var(--spacing-xl) 0;
+            margin-bottom: var(--spacing-xl);
+        }
+
+        .page-title {
+            font-size: var(--font-size-3xl);
+            font-weight: 600;
+            margin-bottom: var(--spacing-sm);
+            color: var(--text-primary);
+        }
+
+        .page-subtitle {
+            font-size: var(--font-size-lg);
+            color: var(--text-secondary);
+        }
+
+        .process-section {
+            margin-bottom: var(--spacing-xl);
+        }
+
+        .section-title {
+            font-size: var(--font-size-2xl);
+            font-weight: 600;
+            margin-bottom: var(--spacing-lg);
+            padding-bottom: var(--spacing-sm);
+            border-bottom: 2px solid var(--color-primary);
+        }
+
+        .subsection-title {
+            font-size: var(--font-size-xl);
+            font-weight: 600;
+            margin: var(--spacing-lg) 0 var(--spacing-md) 0;
+            color: var(--text-primary);
+        }
+
+        .info-box {
+            background: var(--bg-secondary);
+            border-left: 4px solid var(--color-primary);
+            padding: var(--spacing-lg);
+            margin-bottom: var(--spacing-lg);
+            border-radius: var(--radius-sm);
+        }
+
+        .info-box.warning {
+            border-left-color: var(--color-warning);
+            background: #fff3cd;
+        }
+
+        .info-box.danger {
+            border-left-color: var(--color-danger);
+            background: #f8d7da;
+        }
+
+        .timeline {
+            position: relative;
+            padding: var(--spacing-lg) 0;
+        }
+
+        .timeline-item {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: var(--spacing-xl);
+            position: relative;
+        }
+
+        .timeline-item:not(:last-child)::after {
+            content: '';
+            position: absolute;
+            left: 15px;
+            top: 40px;
+            width: 2px;
+            height: calc(100% + var(--spacing-lg));
+            background: var(--border-color);
+        }
+
+        .timeline-marker {
+            width: 32px;
+            height: 32px;
+            background: var(--color-primary);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            flex-shrink: 0;
+            z-index: 1;
+        }
+
+        .timeline-content {
+            flex: 1;
+            margin-left: var(--spacing-lg);
+        }
+
+        .timeline-title {
+            font-weight: 600;
+            margin-bottom: var(--spacing-xs);
+            color: var(--text-primary);
+        }
+
+        .timeline-description {
+            color: var(--text-secondary);
+            font-size: var(--font-size-sm);
+        }
+
+        .requirement-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .requirement-list li {
+            padding: var(--spacing-sm) 0;
+            border-bottom: 1px solid var(--border-light);
+        }
+
+        .requirement-list li:last-child {
+            border-bottom: none;
+        }
+
+        .requirement-list strong {
+            color: var(--text-primary);
+        }
+
+        .document-checklist {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: var(--spacing-md);
+            margin: var(--spacing-lg) 0;
+        }
+
+        .checklist-item {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+            padding: var(--spacing-sm);
+            background: var(--bg-secondary);
+            border-radius: var(--radius-sm);
+        }
+
+        .checklist-item::before {
+            content: '☐';
+            font-size: var(--font-size-xl);
+            color: var(--color-primary);
+        }
+
+        .regulation-reference {
+            background: var(--bg-tertiary);
+            padding: var(--spacing-sm) var(--spacing-md);
+            border-radius: var(--radius-sm);
+            font-size: var(--font-size-sm);
+            color: var(--text-secondary);
+            margin-top: var(--spacing-lg);
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <!-- 네비게이션 바 -->
+    <nav class="navbar">
+        <div class="navbar-container">
+            <a href="index.html" class="navbar-brand">
+                <span>교원 인사 관리 시스템</span>
+            </a>
+            <button class="navbar-toggle" aria-label="메뉴 토글">
+                <span class="navbar-toggle-icon"></span>
+            </button>
+            <ul class="navbar-menu">
+                <li class="navbar-item">
+                    <a href="index.html" class="navbar-link" data-page="dashboard">대시보드</a>
+                </li>
+                <li class="navbar-item">
+                    <a href="promotion.html" class="navbar-link" data-page="promotion">승진</a>
+                </li>
+                <li class="navbar-item">
+                    <a href="reappointment.html" class="navbar-link" data-page="reappointment">재임용</a>
+                </li>
+                <li class="navbar-item">
+                    <a href="regulations.html" class="navbar-link" data-page="regulations">규정 관리</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- 페이지 헤더 -->
+    <div class="page-header">
+        <div class="container">
+            <h1 class="page-title">승진 프로세스 안내</h1>
+            <p class="page-subtitle">교원인사규정 제3장에 따른 승진 절차 및 요건</p>
+        </div>
+    </div>
+
+    <!-- 메인 컨텐츠 -->
+    <div class="container">
+        <!-- 1. 승진 자격 요건 -->
+        <section class="process-section">
+            <h2 class="section-title">1. 승진 자격 요건</h2>
+
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">승진 소요 연한 (제15조)</h3>
+                </div>
+                <div class="card-body">
+                    <h4 class="subsection-title">2012년 3월 1일 이후 신규임용 정년트랙 교원</h4>
+                    <ul class="requirement-list">
+                        <li><strong>조교수 → 부교수:</strong> 6년</li>
+                        <li><strong>부교수 → 교수:</strong> 7년</li>
+                    </ul>
+
+                    <h4 class="subsection-title">2012년 2월 28일 이전 신규임용 정년트랙 교원</h4>
+                    <ul class="requirement-list">
+                        <li><strong>조교수 → 부교수:</strong> 4년</li>
+                        <li><strong>부교수 → 교수:</strong> 5년</li>
+                    </ul>
+
+                    <h4 class="subsection-title">비정년트랙 교원</h4>
+                    <ul class="requirement-list">
+                        <li><strong>조교수 → 부교수:</strong> 6년</li>
+                    </ul>
+
+                    <div class="info-box mt-4">
+                        <strong>참고:</strong> 승진소요연한 산정 시 본인의 원에 의한 휴직기간 및 공무로 인한 휴직기간은 산입하지 않습니다.
+                        다만, 타대학(교)에서 동일직급 이상의 근무기간을 합산인정할 수 있습니다.
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 2. 승진 일정 -->
+        <section class="process-section">
+            <h2 class="section-title">2. 승진 일정</h2>
+
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">승진 시기 (제16조)</h3>
+                </div>
+                <div class="card-body">
+                    <p class="mb-4"><strong>교원의 승진시기는 매학년도 4월 1일과 10월 1일에 승진임용합니다.</strong></p>
+
+                    <div class="row">
+                        <div class="col-6">
+                            <div class="card bg-secondary">
+                                <div class="card-header">
+                                    <h4 class="subsection-title mb-0">4월 1일 승진</h4>
+                                </div>
+                                <div class="card-body">
+                                    <div class="timeline">
+                                        <div class="timeline-item">
+                                            <div class="timeline-marker">1</div>
+                                            <div class="timeline-content">
+                                                <div class="timeline-title">전년 12월</div>
+                                                <div class="timeline-description">승진 대상자 파악 시작</div>
+                                            </div>
+                                        </div>
+                                        <div class="timeline-item">
+                                            <div class="timeline-marker">2</div>
+                                            <div class="timeline-content">
+                                                <div class="timeline-title">1월 ~ 2월 초</div>
+                                                <div class="timeline-description">승진 서류 준비</div>
+                                            </div>
+                                        </div>
+                                        <div class="timeline-item">
+                                            <div class="timeline-marker">3</div>
+                                            <div class="timeline-content">
+                                                <div class="timeline-title">2월 말</div>
+                                                <div class="timeline-description">서류 제출 마감 (승진일 2개월 전)</div>
+                                            </div>
+                                        </div>
+                                        <div class="timeline-item">
+                                            <div class="timeline-marker">4</div>
+                                            <div class="timeline-content">
+                                                <div class="timeline-title">3월</div>
+                                                <div class="timeline-description">교원업적평가 및 인사위원회 심사</div>
+                                            </div>
+                                        </div>
+                                        <div class="timeline-item">
+                                            <div class="timeline-marker">5</div>
+                                            <div class="timeline-content">
+                                                <div class="timeline-title">4월 1일</div>
+                                                <div class="timeline-description">승진 발령</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="card bg-secondary">
+                                <div class="card-header">
+                                    <h4 class="subsection-title mb-0">10월 1일 승진</h4>
+                                </div>
+                                <div class="card-body">
+                                    <div class="timeline">
+                                        <div class="timeline-item">
+                                            <div class="timeline-marker">1</div>
+                                            <div class="timeline-content">
+                                                <div class="timeline-title">6월</div>
+                                                <div class="timeline-description">승진 대상자 파악 시작</div>
+                                            </div>
+                                        </div>
+                                        <div class="timeline-item">
+                                            <div class="timeline-marker">2</div>
+                                            <div class="timeline-content">
+                                                <div class="timeline-title">7월 ~ 8월 초</div>
+                                                <div class="timeline-description">승진 서류 준비</div>
+                                            </div>
+                                        </div>
+                                        <div class="timeline-item">
+                                            <div class="timeline-marker">3</div>
+                                            <div class="timeline-content">
+                                                <div class="timeline-title">8월 말</div>
+                                                <div class="timeline-description">서류 제출 마감 (승진일 2개월 전)</div>
+                                            </div>
+                                        </div>
+                                        <div class="timeline-item">
+                                            <div class="timeline-marker">4</div>
+                                            <div class="timeline-content">
+                                                <div class="timeline-title">9월</div>
+                                                <div class="timeline-description">교원업적평가 및 인사위원회 심사</div>
+                                            </div>
+                                        </div>
+                                        <div class="timeline-item">
+                                            <div class="timeline-marker">5</div>
+                                            <div class="timeline-content">
+                                                <div class="timeline-title">10월 1일</div>
+                                                <div class="timeline-description">승진 발령</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 3. 필요 서류 -->
+        <section class="process-section">
+            <h2 class="section-title">3. 제출 서류</h2>
+
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">승진심사 필요 서류 (제15조)</h3>
+                </div>
+                <div class="card-body">
+                    <div class="document-checklist">
+                        <div class="checklist-item">교원계약임용신청서 (별표5)</div>
+                        <div class="checklist-item">교원업적평가표</div>
+                        <div class="checklist-item">연구실적물</div>
+                        <div class="checklist-item">기타 심의 필요 서류</div>
+                    </div>
+
+                    <div class="info-box mt-4">
+                        <strong>제출 시기:</strong> 승진대상자 상호간에는 승진심사를 할 수 없으므로,
+                        승진 직급 승진소요연한 2개월 전에 신청서 및 필요 서류를 해당부서에 제출해야 합니다.
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 4. 승진 제한 사유 -->
+        <section class="process-section">
+            <h2 class="section-title">4. 승진 제한 사유</h2>
+
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">승진임용 제한 (제15조의2)</h3>
+                </div>
+                <div class="card-body">
+                    <div class="info-box danger">
+                        <strong>다음에 해당하는 경우 승진임용될 수 없습니다:</strong>
+                    </div>
+
+                    <ul class="requirement-list">
+                        <li><strong>징계처분·직위해제 또는 휴직 중인 자</strong></li>
+                        <li>
+                            <strong>징계처분의 집행이 종료된 날로부터 다음 기간이 경과되지 아니한 경우:</strong>
+                            <ul style="margin-left: var(--spacing-lg); margin-top: var(--spacing-sm);">
+                                <li>정직: 18개월</li>
+                                <li>감봉: 12개월</li>
+                                <li>견책: 6개월</li>
+                            </ul>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- 5. 승진 절차 -->
+        <section class="process-section">
+            <h2 class="section-title">5. 승진 절차</h2>
+
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">승진 심사 및 결정 절차 (제15조)</h3>
+                </div>
+                <div class="card-body">
+                    <div class="timeline">
+                        <div class="timeline-item">
+                            <div class="timeline-marker">1</div>
+                            <div class="timeline-content">
+                                <div class="timeline-title">교원업적평가</div>
+                                <div class="timeline-description">
+                                    교무처장이 승진대상자의 교원업적평가표를 교원업적평가위원회의 심의를 거쳐 총장에게 보고
+                                </div>
+                            </div>
+                        </div>
+                        <div class="timeline-item">
+                            <div class="timeline-marker">2</div>
+                            <div class="timeline-content">
+                                <div class="timeline-title">승진대상자 결정</div>
+                                <div class="timeline-description">
+                                    총장이 근무의 충실도와 학생지도능력 및 학교발전 공헌도 등을 참작하여 승진대상자를 결정
+                                </div>
+                            </div>
+                        </div>
+                        <div class="timeline-item">
+                            <div class="timeline-marker">3</div>
+                            <div class="timeline-content">
+                                <div class="timeline-title">교원인사위원회 동의</div>
+                                <div class="timeline-description">
+                                    교원인사위원회의 동의를 획득
+                                </div>
+                            </div>
+                        </div>
+                        <div class="timeline-item">
+                            <div class="timeline-marker">4</div>
+                            <div class="timeline-content">
+                                <div class="timeline-title">정년보장 심사 (교수 승진 시)</div>
+                                <div class="timeline-description">
+                                    부교수에서 교수로 승진할 경우, 정년보장 교원임용 심사위원회의 심사를 거쳐야 함
+                                </div>
+                            </div>
+                        </div>
+                        <div class="timeline-item">
+                            <div class="timeline-marker">5</div>
+                            <div class="timeline-content">
+                                <div class="timeline-title">이사장 승진 제청</div>
+                                <div class="timeline-description">
+                                    총장이 이사장에게 승진을 제청
+                                </div>
+                            </div>
+                        </div>
+                        <div class="timeline-item">
+                            <div class="timeline-marker">6</div>
+                            <div class="timeline-content">
+                                <div class="timeline-title">승진 발령</div>
+                                <div class="timeline-description">
+                                    4월 1일 또는 10월 1일자로 승진 발령
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 규정 참조 -->
+        <div class="regulation-reference">
+            <p>본 안내는 교원인사규정 제3장(승진) 제15조~제16조를 기반으로 작성되었습니다.</p>
+            <p>최종 업데이트: 2025년 11월 3일 | <a href="regulations.html" class="text-primary">전체 규정 보기</a></p>
+        </div>
+    </div>
+
+    <!-- JavaScript -->
+    <script src="js/common.js"></script>
+    <script src="js/navigation.js"></script>
+</body>
+</html>
