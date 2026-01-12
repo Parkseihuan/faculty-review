@@ -3,286 +3,156 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>교원 재계약 및 승진 임용 대시보드</title>
+    <title>교원 인사 관리 시스템</title>
+    <link rel="stylesheet" href="css/common.css">
+    <link rel="stylesheet" href="css/navigation.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        :root {
-            --primary-color: #667eea;
-            --secondary-color: #764ba2;
-            --accent-color: #f093fb;
-            --warning-color: #ffeaa7;
-            --danger-color: #fd79a8;
-            --success-color: #00b894;
-            --dark-bg: #0f0f23;
-            --card-bg: rgba(255, 255, 255, 0.1);
-            --text-primary: #ffffff;
-            --text-secondary: rgba(255, 255, 255, 0.8);
-            --border-color: rgba(255, 255, 255, 0.2);
-        }
-
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
-            min-height: 100vh;
-            color: var(--text-primary);
-            overflow-x: hidden;
+            padding-top: 60px;
+            padding-bottom: 40px;
         }
 
-        .dashboard-container {
-            max-width: 1400px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-
-        .header {
-            text-align: center;
-            margin-bottom: 40px;
-            padding: 30px 0;
-        }
-
-        .header h1 {
-            font-size: 2.5rem;
-            font-weight: 700;
-            margin-bottom: 10px;
-            background: linear-gradient(135deg, #fff, var(--accent-color));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            animation: fadeInUp 1s ease-out;
-        }
-
-        .header p {
-            font-size: 1.1rem;
-            color: var(--text-secondary);
-            animation: fadeInUp 1s ease-out 0.2s both;
-            margin-bottom: 30px;
-        }
-
-        .date-control {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 15px;
-            background: var(--card-bg);
-            backdrop-filter: blur(20px);
-            border: 1px solid var(--border-color);
-            border-radius: 16px;
-            padding: 24px;
-            margin-top: 30px;
-            animation: fadeInUp 1s ease-out 0.4s both;
-        }
-
-        .date-selector {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            flex-wrap: wrap;
-            justify-content: center;
-        }
-
-        .date-selector label {
-            font-weight: 600;
-            color: var(--text-primary);
-            white-space: nowrap;
-        }
-
-        .date-selector input[type="date"] {
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            padding: 10px 14px;
-            color: var(--text-primary);
-            font-size: 1rem;
-            transition: all 0.3s ease;
-            min-width: 150px;
-        }
-
-        .date-selector input[type="date"]:focus {
-            outline: none;
-            border-color: var(--accent-color);
-            box-shadow: 0 0 0 3px rgba(240, 147, 251, 0.2);
-        }
-
-        .date-selector input[type="date"]::-webkit-calendar-picker-indicator {
-            filter: invert(1);
-            cursor: pointer;
-        }
-
-        .today-btn {
-            background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
-            border: none;
+        .hero-section {
+            background: linear-gradient(135deg, var(--color-primary) 0%, #667eea 100%);
             color: white;
-            padding: 10px 16px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: 500;
-            transition: all 0.3s ease;
-            white-space: nowrap;
+            padding: var(--spacing-xl) 0;
+            margin-bottom: var(--spacing-xl);
+            border-radius: var(--radius-lg);
         }
 
-        .today-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
-        }
-
-        .date-info {
+        .hero-content {
             text-align: center;
-            color: var(--text-secondary);
-            font-size: 0.95rem;
+            max-width: 800px;
+            margin: 0 auto;
         }
 
-        .date-info span {
-            color: var(--accent-color);
+        .hero-title {
+            font-size: var(--font-size-3xl);
+            font-weight: 700;
+            margin-bottom: var(--spacing-md);
+        }
+
+        .hero-subtitle {
+            font-size: var(--font-size-lg);
+            opacity: 0.9;
+            margin-bottom: var(--spacing-lg);
+        }
+
+        .quick-actions {
+            display: flex;
+            gap: var(--spacing-md);
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .quick-action-btn {
+            background: white;
+            color: var(--color-primary);
+            padding: var(--spacing-md) var(--spacing-lg);
+            border-radius: var(--radius-md);
+            text-decoration: none;
             font-weight: 600;
+            transition: all 0.2s ease;
+            box-shadow: var(--shadow-md);
+        }
+
+        .quick-action-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
         }
 
         .stats-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 20px;
-            margin-bottom: 40px;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: var(--spacing-md);
+            margin-bottom: var(--spacing-lg);
         }
 
         .stat-card {
-            background: var(--card-bg);
-            backdrop-filter: blur(20px);
+            background: var(--bg-primary);
             border: 1px solid var(--border-color);
-            border-radius: 16px;
-            padding: 24px;
+            border-radius: var(--radius-md);
+            padding: var(--spacing-lg);
             text-align: center;
-            transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .stat-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 3px;
-            background: linear-gradient(90deg, var(--primary-color), var(--accent-color));
-            opacity: 0;
-            transition: opacity 0.3s ease;
+            transition: all 0.2s ease;
         }
 
         .stat-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
-        }
-
-        .stat-card:hover::before {
-            opacity: 1;
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-md);
         }
 
         .stat-number {
             font-size: 2.5rem;
-            font-weight: 800;
-            margin-bottom: 8px;
-            background: linear-gradient(135deg, #fff, var(--accent-color));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
+            font-weight: 700;
+            color: var(--color-primary);
+            margin-bottom: var(--spacing-xs);
         }
 
         .stat-label {
-            font-size: 0.95rem;
+            font-size: var(--font-size-sm);
             color: var(--text-secondary);
-            font-weight: 500;
         }
 
-        .alerts-section {
-            margin-bottom: 40px;
+        .upload-section {
+            background: var(--bg-primary);
+            border: 2px dashed var(--border-color);
+            border-radius: var(--radius-md);
+            padding: var(--spacing-xl);
+            text-align: center;
+            margin-bottom: var(--spacing-lg);
+            cursor: pointer;
+            transition: all 0.2s ease;
         }
 
-        .section-title {
-            font-size: 1.8rem;
-            font-weight: 600;
-            margin-bottom: 20px;
-            display: flex;
-            align-items: center;
-            gap: 12px;
+        .upload-section:hover {
+            border-color: var(--color-primary);
+            background: var(--bg-secondary);
         }
 
-        .section-title::before {
-            content: '';
-            width: 4px;
-            height: 24px;
-            background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
-            border-radius: 2px;
+        .upload-section input {
+            display: none;
         }
 
-        .alerts-grid {
+        .alert-section {
+            margin-bottom: var(--spacing-lg);
+        }
+
+        .alert-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
-            gap: 20px;
+            gap: var(--spacing-md);
         }
 
         .alert-card {
-            background: var(--card-bg);
-            backdrop-filter: blur(20px);
-            border: 1px solid var(--border-color);
-            border-radius: 16px;
-            padding: 24px;
-            transition: all 0.3s ease;
-            position: relative;
-        }
-
-        .alert-card.warning {
-            border-left: 4px solid var(--warning-color);
-            background: linear-gradient(135deg, rgba(255, 234, 167, 0.1), var(--card-bg));
+            background: var(--bg-primary);
+            border-left: 4px solid var(--color-warning);
+            border-radius: var(--radius-md);
+            padding: var(--spacing-lg);
         }
 
         .alert-card.danger {
-            border-left: 4px solid var(--danger-color);
-            background: linear-gradient(135deg, rgba(253, 121, 168, 0.1), var(--card-bg));
+            border-left-color: var(--color-danger);
         }
 
         .alert-title {
-            font-size: 1.2rem;
             font-weight: 600;
-            margin-bottom: 16px;
+            margin-bottom: var(--spacing-md);
             display: flex;
             align-items: center;
-            gap: 8px;
-        }
-
-        .alert-icon {
-            width: 20px;
-            height: 20px;
-            border-radius: 50%;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 12px;
-        }
-
-        .alert-icon.warning {
-            background: var(--warning-color);
-            color: #333;
-        }
-
-        .alert-icon.danger {
-            background: var(--danger-color);
-            color: #fff;
+            gap: var(--spacing-sm);
         }
 
         .alert-list {
             list-style: none;
-            max-height: 200px;
+            max-height: 250px;
             overflow-y: auto;
         }
 
         .alert-item {
-            padding: 12px 0;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding: var(--spacing-sm) 0;
+            border-bottom: 1px solid var(--border-light);
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -292,269 +162,75 @@
             border-bottom: none;
         }
 
-        .teacher-info {
-            flex-grow: 1;
-        }
-
         .teacher-name {
-            font-weight: 600;
-            margin-bottom: 4px;
+            font-weight: 500;
         }
 
         .teacher-details {
-            font-size: 0.85rem;
+            font-size: var(--font-size-sm);
             color: var(--text-secondary);
         }
 
         .date-badge {
-            background: rgba(255, 255, 255, 0.2);
+            background: var(--bg-tertiary);
             padding: 4px 8px;
-            border-radius: 8px;
-            font-size: 0.8rem;
-            font-weight: 500;
-        }
-
-        .faculty-table-container {
-            background: var(--card-bg);
-            backdrop-filter: blur(20px);
-            border: 1px solid var(--border-color);
-            border-radius: 16px;
-            padding: 24px;
-            margin-bottom: 40px;
-        }
-
-        .table-controls {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-            gap: 20px;
-            flex-wrap: wrap;
-        }
-
-        .search-box {
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            padding: 12px 16px;
-            color: var(--text-primary);
-            font-size: 1rem;
-            width: 300px;
-            transition: all 0.3s ease;
-        }
-
-        .search-box:focus {
-            outline: none;
-            border-color: var(--accent-color);
-            box-shadow: 0 0 0 3px rgba(240, 147, 251, 0.2);
-        }
-
-        .filter-buttons {
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-        }
-
-        .filter-btn {
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid var(--border-color);
-            color: var(--text-primary);
-            padding: 8px 16px;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            font-size: 0.9rem;
-        }
-
-        .filter-btn:hover,
-        .filter-btn.active {
-            background: var(--accent-color);
-            border-color: var(--accent-color);
-            color: #fff;
-            transform: translateY(-2px);
-        }
-
-        .faculty-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
-        }
-
-        .faculty-table th,
-        .faculty-table td {
-            padding: 12px;
-            text-align: left;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .faculty-table th {
-            background: rgba(255, 255, 255, 0.05);
-            font-weight: 600;
-            color: var(--text-primary);
-            position: sticky;
-            top: 0;
-            backdrop-filter: blur(10px);
-        }
-
-        .faculty-table tr {
-            transition: all 0.2s ease;
-        }
-
-        .faculty-table tr:hover {
-            background: rgba(255, 255, 255, 0.05);
-        }
-
-        .status-badge {
-            padding: 4px 8px;
-            border-radius: 12px;
-            font-size: 0.8rem;
-            font-weight: 500;
-            text-align: center;
-        }
-
-        .status-badge.normal {
-            background: rgba(0, 184, 148, 0.2);
-            color: var(--success-color);
-        }
-
-        .status-badge.warning {
-            background: rgba(255, 234, 167, 0.2);
-            color: var(--warning-color);
-        }
-
-        .status-badge.danger {
-            background: rgba(253, 121, 168, 0.2);
-            color: var(--danger-color);
-        }
-
-        .file-upload {
-            background: var(--card-bg);
-            backdrop-filter: blur(20px);
-            border: 2px dashed var(--border-color);
-            border-radius: 16px;
-            padding: 40px;
-            text-align: center;
-            margin-bottom: 30px;
-            transition: all 0.3s ease;
-            cursor: pointer;
-        }
-
-        .file-upload:hover {
-            border-color: var(--accent-color);
-            background: rgba(240, 147, 251, 0.1);
-        }
-
-        .file-upload input {
-            display: none;
-        }
-
-        .upload-text {
-            font-size: 1.1rem;
-            margin-bottom: 8px;
-        }
-
-        .upload-subtext {
-            color: var(--text-secondary);
-            font-size: 0.9rem;
-        }
-
-        @keyframes fadeInUp {
-            from {
-                opacity: 0;
-                transform: translateY(30px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        @keyframes pulse {
-            0%, 100% {
-                opacity: 1;
-            }
-            50% {
-                opacity: 0.5;
-            }
-        }
-
-        .loading {
-            display: inline-block;
-            animation: pulse 1.5s ease-in-out infinite;
-        }
-
-        @media (max-width: 768px) {
-            .dashboard-container {
-                padding: 10px;
-            }
-            
-            .header h1 {
-                font-size: 2rem;
-            }
-            
-            .date-control {
-                margin-top: 20px;
-                padding: 20px;
-            }
-            
-            .date-selector {
-                flex-direction: column;
-                gap: 10px;
-            }
-            
-            .date-selector input[type="date"] {
-                min-width: unset;
-                width: 100%;
-            }
-            
-            .stats-grid {
-                grid-template-columns: 1fr;
-            }
-            
-            .alerts-grid {
-                grid-template-columns: 1fr;
-            }
-            
-            .table-controls {
-                flex-direction: column;
-                align-items: stretch;
-            }
-            
-            .search-box {
-                width: 100%;
-            }
-            
-            .filter-buttons {
-                justify-content: center;
-            }
+            border-radius: var(--radius-sm);
+            font-size: var(--font-size-sm);
         }
     </style>
 </head>
 <body>
-    <div class="dashboard-container">
-        <div class="header">
-            <h1>교원 재계약 및 승진 임용 대시보드</h1>
-            <p>Faculty Reappointment & Promotion Management System</p>
-            <p style="font-size: 0.85rem; color: rgba(255, 255, 255, 0.6); margin-top: 5px;">ver. 2025.01.10.02 (Fixed)</p>
-            
-            <div class="date-control">
-                <div class="date-selector">
-                    <label for="baseDate">기준 날짜:</label>
-                    <input type="date" id="baseDate" onchange="onBaseDateChange()">
-                    <button class="today-btn" onclick="setToday()">오늘</button>
-                </div>
-                <div class="date-info">
-                    <span id="baseDateDisplay">-</span> 기준
+    <!-- 네비게이션 바 -->
+    <nav class="navbar">
+        <div class="navbar-container">
+            <a href="index.html" class="navbar-brand">교원 인사 관리 시스템</a>
+            <button class="navbar-toggle" aria-label="메뉴 토글">
+                <span class="navbar-toggle-icon"></span>
+            </button>
+            <ul class="navbar-menu">
+                <li class="navbar-item">
+                    <a href="index.html" class="navbar-link" data-page="dashboard">대시보드</a>
+                </li>
+                <li class="navbar-item">
+                    <a href="promotion.html" class="navbar-link" data-page="promotion">승진</a>
+                </li>
+                <li class="navbar-item">
+                    <a href="reappointment.html" class="navbar-link" data-page="reappointment">재임용</a>
+                </li>
+                <li class="navbar-item">
+                    <a href="regulations.html" class="navbar-link" data-page="regulations">규정 관리</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <div class="container">
+        <!-- 히어로 섹션 -->
+        <div class="hero-section">
+            <div class="hero-content">
+                <h1 class="hero-title">교원 인사 관리 시스템</h1>
+                <p class="hero-subtitle">승진 및 재임용 업무의 체계적 관리</p>
+                <div class="quick-actions">
+                    <a href="promotion.html" class="quick-action-btn">📊 승진 관리</a>
+                    <a href="promotion-process.html" class="quick-action-btn">📋 승진 프로세스</a>
+                    <a href="#upload" class="quick-action-btn">📁 데이터 업로드</a>
                 </div>
             </div>
         </div>
 
-        <div class="file-upload" onclick="document.getElementById('fileInput').click()">
-            <input type="file" id="fileInput" accept=".xlsx,.xls" onchange="loadExcelFile(event)">
-            <div class="upload-text">📊 교원현황 엑셀 파일 업로드</div>
-            <div class="upload-subtext">교원현황_샘플데이터.xls 또는 .xlsx 파일을 드래그하거나 클릭하여 업로드하세요</div>
+        <!-- 기준 날짜 -->
+        <div class="card mb-4">
+            <div class="card-body">
+                <div class="d-flex align-items-center gap-3 flex-wrap">
+                    <label for="baseDate" class="form-label mb-0">기준 날짜:</label>
+                    <input type="date" id="baseDate" class="form-control" style="width: auto;" onchange="onBaseDateChange()">
+                    <button class="btn btn-secondary btn-sm" onclick="setToday()">오늘</button>
+                    <span class="text-muted" id="baseDateDisplay">-</span>
+                </div>
+            </div>
         </div>
 
+        <!-- 통계 카드 -->
         <div class="stats-grid">
             <div class="stat-card">
                 <div class="stat-number" id="totalFaculty">-</div>
@@ -574,108 +250,125 @@
             </div>
         </div>
 
-        <div class="alerts-section">
-            <h2 class="section-title">재계약 알림</h2>
-            <div class="alerts-grid">
+        <!-- 엑셀 업로드 -->
+        <div id="upload" class="upload-section" onclick="document.getElementById('fileInput').click()">
+            <input type="file" id="fileInput" accept=".xlsx,.xls" onchange="loadExcelFile(event)">
+            <div style="font-size: var(--font-size-xl); margin-bottom: var(--spacing-sm);">📊 교원현황 엑셀 파일 업로드</div>
+            <div style="font-size: var(--font-size-sm); color: var(--text-secondary);">
+                클릭하거나 파일을 드래그하여 업로드하세요
+            </div>
+        </div>
+
+        <!-- 재계약 알림 -->
+        <div class="alert-section">
+            <h2 class="section-title mb-3">재계약 알림</h2>
+            <div class="alert-grid">
                 <div class="alert-card danger">
                     <div class="alert-title">
-                        <span class="alert-icon danger">!</span>
-                        긴급: 2개월 이내 재계약 종료 <span id="urgentRenewalCount" style="color: var(--danger-color);"></span>
+                        <span>🔴</span>
+                        <span>긴급: 2개월 이내 재계약 종료</span>
+                        <span class="badge badge-danger" id="urgentRenewalCount">-</span>
                     </div>
                     <ul class="alert-list" id="urgentRenewalList">
-                        <li class="loading">데이터를 불러오는 중...</li>
+                        <li class="text-center text-muted p-3">데이터를 불러오는 중...</li>
                     </ul>
                 </div>
-                <div class="alert-card warning">
+                <div class="alert-card">
                     <div class="alert-title">
-                        <span class="alert-icon warning">⚠</span>
-                        주의: 4개월 이내 재계약 종료 <span id="warningRenewalCount" style="color: var(--warning-color);"></span>
+                        <span>🟡</span>
+                        <span>주의: 4개월 이내 재계약 종료</span>
+                        <span class="badge badge-warning" id="warningRenewalCount">-</span>
                     </div>
                     <ul class="alert-list" id="warningRenewalList">
-                        <li class="loading">데이터를 불러오는 중...</li>
+                        <li class="text-center text-muted p-3">데이터를 불러오는 중...</li>
                     </ul>
                 </div>
             </div>
         </div>
 
-        <div class="alerts-section">
-            <h2 class="section-title">승진 심사 알림</h2>
-            <div class="alerts-grid">
-                <div class="alert-card warning">
+        <!-- 승진 심사 알림 -->
+        <div class="alert-section">
+            <h2 class="section-title mb-3">승진 심사 알림</h2>
+            <div class="alert-grid">
+                <div class="alert-card">
                     <div class="alert-title">
-                        <span class="alert-icon warning">📋</span>
-                        다음 학기 4월 승진 대상 (2월 말 마감) <span id="aprilPromotionCount" style="color: var(--warning-color);"></span>
+                        <span>📋</span>
+                        <span>4월 승진 대상 (2월 말 마감)</span>
+                        <span class="badge badge-primary" id="aprilPromotionCount">-</span>
                     </div>
                     <ul class="alert-list" id="aprilPromotionList">
-                        <li class="loading">데이터를 불러오는 중...</li>
+                        <li class="text-center text-muted p-3">데이터를 불러오는 중...</li>
                     </ul>
                 </div>
-                <div class="alert-card warning">
+                <div class="alert-card">
                     <div class="alert-title">
-                        <span class="alert-icon warning">📋</span>
-                        다음 학기 10월 승진 대상 (8월 말 마감) <span id="octoberPromotionCount" style="color: var(--warning-color);"></span>
+                        <span>📋</span>
+                        <span>10월 승진 대상 (8월 말 마감)</span>
+                        <span class="badge badge-primary" id="octoberPromotionCount">-</span>
                     </div>
                     <ul class="alert-list" id="octoberPromotionList">
-                        <li class="loading">데이터를 불러오는 중...</li>
+                        <li class="text-center text-muted p-3">데이터를 불러오는 중...</li>
                     </ul>
                 </div>
             </div>
         </div>
 
-        <div class="faculty-table-container">
-            <h2 class="section-title">교원 현황</h2>
-            <div class="table-controls">
-                <input type="text" class="search-box" id="searchBox" placeholder="교원명, 소속, 직급 검색..." onkeyup="filterTable()">
-                <div class="filter-buttons">
-                    <button class="filter-btn active" onclick="filterByRank('all')">전체</button>
-                    <button class="filter-btn" onclick="filterByRank('교수')">교수</button>
-                    <button class="filter-btn" onclick="filterByRank('부교수')">부교수</button>
-                    <button class="filter-btn" onclick="filterByRank('조교수')">조교수</button>
-                    <button class="filter-btn" onclick="filterByRank('비정년')">비정년트랙</button>
-                </div>
+        <!-- 교원 현황 테이블 -->
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">교원 현황</h3>
             </div>
-            <div class="table-wrapper">
-                <table class="faculty-table" id="facultyTable">
-                    <thead>
-                        <tr>
-                            <th>성명</th>
-                            <th>소속</th>
-                            <th>직급</th>
-                            <th>임용일</th>
-                            <th>재임용시작일</th>
-                            <th>종료일</th>
-                            <th>상태</th>
-                            <th>다음 심사</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td colspan="8" style="text-align: center; padding: 40px; color: var(--text-secondary);">
-                                엑셀 파일을 업로드하여 데이터를 불러오세요
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
+            <div class="card-body">
+                <div class="mb-3">
+                    <input type="text" class="form-control" id="searchBox" placeholder="교원명, 소속, 직급 검색..." onkeyup="filterTable()">
+                </div>
+                <div class="table-wrapper" style="overflow-x: auto;">
+                    <table class="table" id="facultyTable">
+                        <thead>
+                            <tr>
+                                <th>성명</th>
+                                <th>소속</th>
+                                <th>직급</th>
+                                <th>임용일</th>
+                                <th>재임용시작일</th>
+                                <th>종료일</th>
+                                <th>상태</th>
+                                <th>다음 심사</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td colspan="8" class="text-center p-4 text-muted">
+                                    엑셀 파일을 업로드하여 데이터를 불러오세요
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </div>
 
+    <!-- JavaScript -->
+    <script src="js/common.js"></script>
+    <script src="js/navigation.js"></script>
+    <script src="js/promotion-engine.js"></script>
     <script>
         let facultyData = [];
         let filteredData = [];
         let currentBaseDate = new Date();
+        let promotionEngine = null;
 
-        // 페이지 로드시 초기화
+        // 페이지 로드 시 초기화
         document.addEventListener('DOMContentLoaded', function() {
             setToday();
         });
 
         // 오늘 날짜로 설정
         function setToday() {
-            const today = new Date();
-            currentBaseDate = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+            currentBaseDate = new Date();
             const dateInput = document.getElementById('baseDate');
-            dateInput.value = formatDateForInput(currentBaseDate);
+            dateInput.value = DateUtils.formatDateForInput(currentBaseDate);
             updateBaseDateDisplay();
             if (facultyData.length > 0) {
                 updateDashboard();
@@ -698,61 +391,10 @@
         // 기준 날짜 표시 업데이트
         function updateBaseDateDisplay() {
             const displayElement = document.getElementById('baseDateDisplay');
-            displayElement.textContent = formatDate(currentBaseDate);
+            displayElement.textContent = DateUtils.formatDate(currentBaseDate) + ' 기준';
         }
 
-        // input용 날짜 형식 변환
-        function formatDateForInput(date) {
-            if (!date) return '';
-            const year = date.getFullYear();
-            const month = String(date.getMonth() + 1).padStart(2, '0');
-            const day = String(date.getDate()).padStart(2, '0');
-            return `${year}-${month}-${day}`;
-        }
-
-        // 날짜 파싱 (타임존 이슈 해결)
-        function parseDate(dateStr) {
-            if (!dateStr) return null;
-            const cleanStr = dateStr.toString().replace(/[^\d.]/g, '');
-            const parts = cleanStr.split('.');
-            if (parts.length === 3) {
-                return new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
-            }
-            return null;
-        }
-
-        // 날짜 포맷팅
-        function formatDate(date) {
-            if (!date) return '-';
-            return date.toLocaleDateString('ko-KR');
-        }
-
-        // 날짜가 같은지 비교 (년, 월, 일만)
-        function isSameDate(date1, date2) {
-            if (!date1 || !date2) return false;
-            return date1.getFullYear() === date2.getFullYear() &&
-                   date1.getMonth() === date2.getMonth() &&
-                   date1.getDate() === date2.getDate();
-        }
-
-        // 특정 날짜까지 남은 일수
-        function getDaysUntil(targetDate, baseDate = currentBaseDate) {
-            if (!targetDate) return null;
-            const target = new Date(targetDate.getFullYear(), targetDate.getMonth(), targetDate.getDate());
-            const base = new Date(baseDate.getFullYear(), baseDate.getMonth(), baseDate.getDate());
-            const diffTime = target - base;
-            return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-        }
-
-        // 특정 날짜까지 남은 개월수
-        function getMonthsUntil(targetDate, baseDate = currentBaseDate) {
-            if (!targetDate) return null;
-            const diffMonths = (targetDate.getFullYear() - baseDate.getFullYear()) * 12 + 
-                             (targetDate.getMonth() - baseDate.getMonth());
-            return diffMonths;
-        }
-
-        // 헤더명 정규화 (개행문자 처리)
+        // 헤더명 정규화
         function getTeacherValue(teacher, fieldName) {
             const possibleKeys = [
                 fieldName,
@@ -760,7 +402,7 @@
                 fieldName.replace(/\r?\n/g, '\r\n'),
                 fieldName.replace(/\r?\n/g, '\n')
             ];
-            
+
             for (const key of possibleKeys) {
                 if (teacher[key] !== undefined && teacher[key] !== null) {
                     return teacher[key];
@@ -769,230 +411,21 @@
             return null;
         }
 
-        // 종료일 가져오기 (재임용종료일 우선)
+        // 종료일 가져오기
         function getEndDate(teacher) {
-            const renewalEndDate = parseDate(teacher['재임용종료일']);
-            const initialEndDate = parseDate(getTeacherValue(teacher, '최초임용\n종료일'));
+            const renewalEndDate = DateUtils.parseDate(teacher['재임용종료일']);
+            const initialEndDate = DateUtils.parseDate(getTeacherValue(teacher, '최초임용\n종료일'));
             return renewalEndDate || initialEndDate;
         }
 
-        // 승진 날짜를 4월 1일 또는 10월 1일로 조정
-        function adjustPromotionDate(date) {
-            if (!date) return null;
-            
-            const year = date.getFullYear();
-            const month = date.getMonth() + 1;
-            
-            if (month <= 3) {
-                return new Date(year, 3, 1); // 4월 1일
-            } else if (month <= 9) {
-                return new Date(year, 9, 1); // 10월 1일
-            } else {
-                return new Date(year + 1, 3, 1); // 다음해 4월 1일
-            }
-        }
-
-        // 승진 시기 판정 (수정됨 - 모든 기간 커버)
-        function getPromotionPeriod(baseDate = currentBaseDate) {
-            const month = baseDate.getMonth() + 1;
-            
-            // 9월~2월: 다음 학기 4월 승진 준비 기간
-            if (month >= 9 || month <= 2) {
-                return 'april';
-            }
-            // 3월~8월: 다음 학기 10월 승진 준비 기간
-            else {
-                return 'october';
-            }
-        }
-
-        // 다음 학기 승진 날짜 계산
-        function getNextSemesterPromotionDate(baseDate = currentBaseDate) {
-            const month = baseDate.getMonth() + 1;
-            const year = baseDate.getFullYear();
-            
-            if (month >= 3 && month <= 8) {
-                return new Date(year, 9, 1); // 10월 1일
-            } else {
-                const nextYear = (month >= 9) ? year + 1 : year;
-                return new Date(nextYear, 3, 1); // 4월 1일
-            }
-        }
-
-        // 윤년 체크 함수 추가
-        function isLeapYear(year) {
-            return (year % 4 === 0 && year % 100 !== 0) || (year % 400 === 0);
-        }
-
-        // 승진 마감일까지 남은 일수 (윤년 처리 포함)
-        function getDaysUntilPromotionDeadline(baseDate = currentBaseDate) {
-            const month = baseDate.getMonth() + 1;
-            const year = baseDate.getFullYear();
-            
-            if (month >= 9 || month <= 2) {
-                // 4월 승진 - 2월 말 마감
-                const nextYear = (month >= 9) ? year + 1 : year;
-                const lastDayOfFeb = isLeapYear(nextYear) ? 29 : 28;
-                const deadline = new Date(nextYear, 1, lastDayOfFeb);
-                return getDaysUntil(deadline, baseDate);
-            } else {
-                // 10월 승진 - 8월 말 마감
-                const deadline = new Date(year, 7, 31);
-                return getDaysUntil(deadline, baseDate);
-            }
-        }
-
-        // 다음 학기 승진 대상자 판정
-        function isNextSemesterPromotionCandidate(teacher, baseDate = currentBaseDate) {
-            const nextPromotionDate = getNextSemesterPromotionDate(baseDate);
-            const reviewInfo = getNextReviewInfo(teacher, baseDate);
-            
-            if (reviewInfo.promotion && reviewInfo.promotion.date) {
-                return isSameDate(reviewInfo.promotion.date, nextPromotionDate);
-            }
-            return false;
-        }
-
         // 재계약 상태 판정
-        function getRenewalStatus(endDate, baseDate = currentBaseDate) {
+        function getRenewalStatus(endDate) {
             if (!endDate) return 'normal';
-            const monthsUntil = getMonthsUntil(endDate, baseDate);
-            
+            const monthsUntil = DateUtils.getMonthsUntil(endDate, currentBaseDate);
+
             if (monthsUntil <= 2) return 'danger';
             if (monthsUntil <= 4) return 'warning';
             return 'normal';
-        }
-
-        // 다음 심사 시기 계산
-        function getNextReviewInfo(teacher, baseDate = currentBaseDate) {
-            const rank = teacher['직급'];
-            const firstAppointment = parseDate(getTeacherValue(teacher, '전임교원\n최초임용일'));
-            const endDate = getEndDate(teacher);
-            const retirementDate = parseDate(teacher['정년일자']);
-            
-            // 정년퇴직 체크
-            if (isSameDate(endDate, retirementDate)) {
-                return {
-                    renewal: null,
-                    promotion: null,
-                    retirement: {
-                        date: retirementDate,
-                        daysUntil: getDaysUntil(retirementDate, baseDate)
-                    }
-                };
-            }
-            
-            let renewalInfo = null;
-            let promotionInfo = null;
-            
-            // 재계약 시기
-            if (endDate && endDate > baseDate) {
-                renewalInfo = {
-                    date: endDate,
-                    daysUntil: getDaysUntil(endDate, baseDate)
-                };
-            }
-            
-            // 승진 가능 시기 계산
-            if (firstAppointment && rank && !rank.includes('비정년')) {
-                let promotionEligibleDate = null;
-                
-                // 조교수 -> 부교수 (6년 후)
-                if (rank.includes('조교수')) {
-                    promotionEligibleDate = new Date(firstAppointment);
-                    promotionEligibleDate.setFullYear(promotionEligibleDate.getFullYear() + 6);
-                }
-                // 부교수 -> 교수 (7년 후)
-                else if (rank.includes('부교수')) {
-                    const currentRankDate = parseDate(getTeacherValue(teacher, '현직급\n승인일'));
-                    const basePromotionDate = currentRankDate || firstAppointment;
-                    
-                    if (basePromotionDate) {
-                        promotionEligibleDate = new Date(basePromotionDate);
-                        promotionEligibleDate.setFullYear(promotionEligibleDate.getFullYear() + 7);
-                    }
-                }
-                
-                if (promotionEligibleDate && promotionEligibleDate >= baseDate) {
-                    const adjustedPromotionDate = adjustPromotionDate(promotionEligibleDate);
-                    promotionInfo = {
-                        date: adjustedPromotionDate,
-                        daysUntil: getDaysUntil(adjustedPromotionDate, baseDate)
-                    };
-                }
-            }
-            
-            return {
-                renewal: renewalInfo,
-                promotion: promotionInfo,
-                retirement: null
-            };
-        }
-
-        // 다음 심사 정보 포맷팅
-        function formatNextReview(reviewInfo) {
-            const parts = [];
-            
-            // 정년퇴직
-            if (reviewInfo.retirement) {
-                const dateStr = formatDate(reviewInfo.retirement.date);
-                const daysUntil = reviewInfo.retirement.daysUntil;
-                let timeInfo = '';
-                if (daysUntil !== null) {
-                    if (daysUntil < 0) {
-                        timeInfo = ' (지남)';
-                    } else if (daysUntil === 0) {
-                        timeInfo = ' (오늘)';
-                    } else if (daysUntil <= 365) {
-                        const months = Math.floor(daysUntil / 30);
-                        timeInfo = ` (${months}개월 후)`;
-                    } else {
-                        const years = Math.floor(daysUntil / 365);
-                        timeInfo = ` (${years}년 후)`;
-                    }
-                }
-                return `정년퇴직 예정 ${dateStr}${timeInfo}`;
-            }
-            
-            // 재계약 정보
-            if (reviewInfo.renewal) {
-                const dateStr = formatDate(reviewInfo.renewal.date);
-                const daysUntil = reviewInfo.renewal.daysUntil;
-                let timeInfo = '';
-                if (daysUntil !== null) {
-                    if (daysUntil <= 30) {
-                        timeInfo = ` (${daysUntil}일 후)`;
-                    } else if (daysUntil <= 365) {
-                        const months = Math.floor(daysUntil / 30);
-                        timeInfo = ` (${months}개월 후)`;
-                    } else {
-                        const years = Math.floor(daysUntil / 365);
-                        timeInfo = ` (${years}년 후)`;
-                    }
-                }
-                parts.push(`재계약 ${dateStr}${timeInfo}`);
-            }
-            
-            // 승진 정보
-            if (reviewInfo.promotion) {
-                const dateStr = formatDate(reviewInfo.promotion.date);
-                const daysUntil = reviewInfo.promotion.daysUntil;
-                let timeInfo = '';
-                if (daysUntil !== null) {
-                    if (daysUntil <= 30) {
-                        timeInfo = ` (${daysUntil}일 후)`;
-                    } else if (daysUntil <= 365) {
-                        const months = Math.floor(daysUntil / 30);
-                        timeInfo = ` (${months}개월 후)`;
-                    } else {
-                        const years = Math.floor(daysUntil / 365);
-                        timeInfo = ` (${years}년 후)`;
-                    }
-                }
-                parts.push(`승진 ${dateStr}${timeInfo}`);
-            }
-            
-            return parts.length > 0 ? parts.join(' / ') : '-';
         }
 
         // 엑셀 파일 로드
@@ -1004,23 +437,16 @@
             reader.onload = function(e) {
                 try {
                     const data = new Uint8Array(e.target.result);
-                    const workbook = XLSX.read(data, {
-                        type: 'array',
-                        cellStyles: true,
-                        cellFormulas: true,
-                        cellDates: true,
-                        cellNF: true,
-                        sheetStubs: true
-                    });
-                    
+                    const workbook = XLSX.read(data, { type: 'array' });
+
                     const firstSheetName = workbook.SheetNames[0];
                     const worksheet = workbook.Sheets[firstSheetName];
                     const rawData = XLSX.utils.sheet_to_json(worksheet, {header: 1});
-                    
+
                     // 헤더 찾기
                     let headerRowIndex = -1;
                     let headers = [];
-                    
+
                     for (let i = 0; i < rawData.length; i++) {
                         if (rawData[i] && rawData[i][0] === 'No.' && rawData[i].includes('성명')) {
                             headerRowIndex = i;
@@ -1028,16 +454,16 @@
                             break;
                         }
                     }
-                    
+
                     if (headerRowIndex === -1) {
-                        throw new Error('헤더를 찾을 수 없습니다. 파일 형식을 확인해주세요.');
+                        throw new Error('헤더를 찾을 수 없습니다.');
                     }
-                    
-                    // 실제 데이터 행 추출
-                    const actualDataRows = rawData.slice(headerRowIndex + 1).filter(row => 
+
+                    // 데이터 추출
+                    const actualDataRows = rawData.slice(headerRowIndex + 1).filter(row =>
                         row && row.length > 0 && row[0] && typeof row[0] === 'number'
                     );
-                    
+
                     // 객체 배열로 변환
                     const jsonData = actualDataRows.map(row => {
                         const obj = {};
@@ -1046,34 +472,39 @@
                         });
                         return obj;
                     });
-                    
+
                     // 재직중인 전임교원만 필터링
                     facultyData = jsonData.filter(teacher => {
                         const workStatus = teacher['재직구분'];
                         const position = teacher['직렬'];
-                        return workStatus && workStatus.toString().includes('재직') && 
+                        return workStatus && workStatus.toString().includes('재직') &&
                                position && position.toString().includes('전임교원');
                     });
-                    
+
                     if (facultyData.length === 0) {
-                        alert('재직중인 전임교원 데이터가 없습니다. 파일을 확인해주세요.');
+                        alert('재직중인 전임교원 데이터가 없습니다.');
                         return;
                     }
-                    
+
                     filteredData = [...facultyData];
+
+                    // 로컬 스토리지에 저장
+                    StorageUtils.set('facultyData', facultyData);
+
                     updateDashboard();
-                    
+
                 } catch (error) {
                     console.error('파일 처리 오류:', error);
                     alert('파일 읽기 중 오류가 발생했습니다: ' + error.message);
                 }
             };
-            
+
             reader.readAsArrayBuffer(file);
         }
 
         // 대시보드 업데이트
         function updateDashboard() {
+            promotionEngine = new PromotionEngine(currentBaseDate);
             updateStats();
             updateRenewalAlerts();
             updatePromotionAlerts();
@@ -1084,31 +515,29 @@
         function updateStats() {
             const totalCount = facultyData.length;
             let renewalAlerts = 0;
-            let promotionAlerts = 0;
             let urgentCases = 0;
 
             facultyData.forEach(teacher => {
                 const endDate = getEndDate(teacher);
-                const retirementDate = parseDate(teacher['정년일자']);
-                const isRetirement = isSameDate(endDate, retirementDate);
-                
+                const retirementDate = DateUtils.parseDate(teacher['정년일자']);
+                const isRetirement = DateUtils.isSameDate(endDate, retirementDate);
+
                 if (!isRetirement) {
-                    const status = getRenewalStatus(endDate, currentBaseDate);
+                    const status = getRenewalStatus(endDate);
                     if (status === 'warning') renewalAlerts++;
                     if (status === 'danger') {
                         renewalAlerts++;
                         urgentCases++;
                     }
                 }
-                
-                if (isNextSemesterPromotionCandidate(teacher, currentBaseDate)) {
-                    promotionAlerts++;
-                }
             });
+
+            // 승진 대상자 계산
+            const promotionCandidates = promotionEngine.calculateAllPromotions(facultyData);
 
             document.getElementById('totalFaculty').textContent = totalCount;
             document.getElementById('renewalAlerts').textContent = renewalAlerts;
-            document.getElementById('promotionAlerts').textContent = promotionAlerts;
+            document.getElementById('promotionAlerts').textContent = promotionCandidates.length;
             document.getElementById('urgentCases').textContent = urgentCases;
         }
 
@@ -1116,39 +545,39 @@
         function updateRenewalAlerts() {
             const urgentList = document.getElementById('urgentRenewalList');
             const warningList = document.getElementById('warningRenewalList');
-            
+
             urgentList.innerHTML = '';
             warningList.innerHTML = '';
-            
+
             const urgentCases = [];
             const warningCases = [];
-            
+
             facultyData.forEach(teacher => {
                 const endDate = getEndDate(teacher);
-                const retirementDate = parseDate(teacher['정년일자']);
-                
-                if (isSameDate(endDate, retirementDate)) return;
-                
-                const status = getRenewalStatus(endDate, currentBaseDate);
-                
+                const retirementDate = DateUtils.parseDate(teacher['정년일자']);
+
+                if (DateUtils.isSameDate(endDate, retirementDate)) return;
+
+                const status = getRenewalStatus(endDate);
+
                 if (status === 'danger') {
                     urgentCases.push(teacher);
                 } else if (status === 'warning') {
                     warningCases.push(teacher);
                 }
             });
-            
+
             if (urgentCases.length === 0) {
-                urgentList.innerHTML = '<li style="padding: 20px; text-align: center; color: var(--text-secondary);">해당 사항 없음</li>';
+                urgentList.innerHTML = '<li class="text-center text-muted p-3">해당 사항 없음</li>';
             } else {
                 urgentCases.forEach(teacher => {
                     const endDate = getEndDate(teacher);
-                    const daysLeft = getDaysUntil(endDate, currentBaseDate);
-                    
+                    const daysLeft = DateUtils.getDaysUntil(endDate, currentBaseDate);
+
                     const li = document.createElement('li');
                     li.className = 'alert-item';
                     li.innerHTML = `
-                        <div class="teacher-info">
+                        <div>
                             <div class="teacher-name">${teacher['성명']}</div>
                             <div class="teacher-details">${teacher['소속']} • ${teacher['직급']}</div>
                         </div>
@@ -1157,18 +586,18 @@
                     urgentList.appendChild(li);
                 });
             }
-            
+
             if (warningCases.length === 0) {
-                warningList.innerHTML = '<li style="padding: 20px; text-align: center; color: var(--text-secondary);">해당 사항 없음</li>';
+                warningList.innerHTML = '<li class="text-center text-muted p-3">해당 사항 없음</li>';
             } else {
                 warningCases.forEach(teacher => {
                     const endDate = getEndDate(teacher);
-                    const monthsLeft = getMonthsUntil(endDate, currentBaseDate);
-                    
+                    const monthsLeft = DateUtils.getMonthsUntil(endDate, currentBaseDate);
+
                     const li = document.createElement('li');
                     li.className = 'alert-item';
                     li.innerHTML = `
-                        <div class="teacher-info">
+                        <div>
                             <div class="teacher-name">${teacher['성명']}</div>
                             <div class="teacher-details">${teacher['소속']} • ${teacher['직급']}</div>
                         </div>
@@ -1177,195 +606,164 @@
                     warningList.appendChild(li);
                 });
             }
-            
-            updateAlertCounts('urgentRenewal', urgentCases.length);
-            updateAlertCounts('warningRenewal', warningCases.length);
+
+            document.getElementById('urgentRenewalCount').textContent = urgentCases.length + '명';
+            document.getElementById('warningRenewalCount').textContent = warningCases.length + '명';
         }
 
         // 승진 알림 업데이트
         function updatePromotionAlerts() {
             const aprilList = document.getElementById('aprilPromotionList');
             const octoberList = document.getElementById('octoberPromotionList');
-            
+
             aprilList.innerHTML = '';
             octoberList.innerHTML = '';
-            
-            const currentPeriod = getPromotionPeriod(currentBaseDate);
-            const promotionDeadlineDays = getDaysUntilPromotionDeadline(currentBaseDate);
-            
-            const promotionCandidates = facultyData.filter(teacher => 
-                isNextSemesterPromotionCandidate(teacher, currentBaseDate)
-            );
-            
-            if (currentPeriod === 'october') {
-                if (promotionCandidates.length === 0) {
-                    octoberList.innerHTML = '<li style="padding: 20px; text-align: center; color: var(--text-secondary);">해당 사항 없음</li>';
-                } else {
-                    promotionCandidates.forEach(teacher => {
-                        const firstAppointment = parseDate(getTeacherValue(teacher, '전임교원\n최초임용일'));
-                        const yearsOfService = Math.floor((currentBaseDate - firstAppointment) / (1000 * 60 * 60 * 24 * 365));
-                        const li = document.createElement('li');
-                        li.className = 'alert-item';
-                        li.innerHTML = `
-                            <div class="teacher-info">
-                                <div class="teacher-name">${teacher['성명']}</div>
-                                <div class="teacher-details">${teacher['소속']} • ${teacher['직급']} • ${yearsOfService}년 근무</div>
-                            </div>
-                            <div class="date-badge">${promotionDeadlineDays > 0 ? promotionDeadlineDays + '일 남음' : '마감'}</div>
-                        `;
-                        octoberList.appendChild(li);
-                    });
-                }
-                updateAlertCounts('octoberPromotion', promotionCandidates.length);
-                
-                aprilList.innerHTML = '<li style="padding: 20px; text-align: center; color: var(--text-secondary);">현재 기간이 아님 (2학기: 9월-2월)</li>';
-                updateAlertCounts('aprilPromotion', 0);
-            } else {
-                if (promotionCandidates.length === 0) {
-                    aprilList.innerHTML = '<li style="padding: 20px; text-align: center; color: var(--text-secondary);">해당 사항 없음</li>';
-                } else {
-                    promotionCandidates.forEach(teacher => {
-                        const firstAppointment = parseDate(getTeacherValue(teacher, '전임교원\n최초임용일'));
-                        const yearsOfService = Math.floor((currentBaseDate - firstAppointment) / (1000 * 60 * 60 * 24 * 365));
-                        const li = document.createElement('li');
-                        li.className = 'alert-item';
-                        li.innerHTML = `
-                            <div class="teacher-info">
-                                <div class="teacher-name">${teacher['성명']}</div>
-                                <div class="teacher-details">${teacher['소속']} • ${teacher['직급']} • ${yearsOfService}년 근무</div>
-                            </div>
-                            <div class="date-badge">${promotionDeadlineDays > 0 ? promotionDeadlineDays + '일 남음' : '마감'}</div>
-                        `;
-                        aprilList.appendChild(li);
-                    });
-                }
-                updateAlertCounts('aprilPromotion', promotionCandidates.length);
-                
-                octoberList.innerHTML = '<li style="padding: 20px; text-align: center; color: var(--text-secondary);">현재 기간이 아님 (1학기: 3월-8월)</li>';
-                updateAlertCounts('octoberPromotion', 0);
-            }
-        }
 
-        // 알림 카운트 업데이트
-        function updateAlertCounts(cardId, count) {
-            const countElement = document.getElementById(`${cardId}Count`);
-            if (countElement) {
-                countElement.textContent = `(${count}명)`;
+            const promotionCandidates = promotionEngine.calculateAllPromotions(facultyData);
+            const stats = promotionEngine.calculateStatistics(promotionCandidates);
+
+            // 4월 승진
+            if (stats.groups.april.length === 0) {
+                aprilList.innerHTML = '<li class="text-center text-muted p-3">해당 사항 없음</li>';
+            } else {
+                stats.groups.april.forEach(candidate => {
+                    const teacher = candidate.teacher;
+                    const info = candidate.promotionInfo;
+
+                    const li = document.createElement('li');
+                    li.className = 'alert-item';
+                    li.innerHTML = `
+                        <div>
+                            <div class="teacher-name">${teacher['성명']}</div>
+                            <div class="teacher-details">${teacher['소속']} • ${teacher['직급']}</div>
+                        </div>
+                        <div class="date-badge">${DateUtils.formatDate(info.nextPromotionDate)}</div>
+                    `;
+                    aprilList.appendChild(li);
+                });
             }
+
+            // 10월 승진
+            if (stats.groups.october.length === 0) {
+                octoberList.innerHTML = '<li class="text-center text-muted p-3">해당 사항 없음</li>';
+            } else {
+                stats.groups.october.forEach(candidate => {
+                    const teacher = candidate.teacher;
+                    const info = candidate.promotionInfo;
+
+                    const li = document.createElement('li');
+                    li.className = 'alert-item';
+                    li.innerHTML = `
+                        <div>
+                            <div class="teacher-name">${teacher['성명']}</div>
+                            <div class="teacher-details">${teacher['소속']} • ${teacher['직급']}</div>
+                        </div>
+                        <div class="date-badge">${DateUtils.formatDate(info.nextPromotionDate)}</div>
+                    `;
+                    octoberList.appendChild(li);
+                });
+            }
+
+            document.getElementById('aprilPromotionCount').textContent = stats.groups.april.length + '명';
+            document.getElementById('octoberPromotionCount').textContent = stats.groups.october.length + '명';
         }
 
         // 교원 테이블 업데이트
         function updateFacultyTable() {
             const tbody = document.querySelector('#facultyTable tbody');
             tbody.innerHTML = '';
-            
+
             if (filteredData.length === 0) {
                 tbody.innerHTML = `
                     <tr>
-                        <td colspan="8" style="text-align: center; padding: 40px; color: var(--text-secondary);">
+                        <td colspan="8" class="text-center p-4 text-muted">
                             검색 결과가 없습니다
                         </td>
                     </tr>
                 `;
                 return;
             }
-            
+
             filteredData.forEach(teacher => {
                 const endDate = getEndDate(teacher);
-                const status = getRenewalStatus(endDate, currentBaseDate);
-                const firstAppointment = parseDate(getTeacherValue(teacher, '전임교원\n최초임용일'));
-                const renewalStart = parseDate(teacher['재임용시작일']);
-                const nextReview = getNextReviewInfo(teacher, currentBaseDate);
-                
+                const status = getRenewalStatus(endDate);
+                const firstAppointment = DateUtils.parseDate(getTeacherValue(teacher, '전임교원\n최초임용일'));
+                const renewalStart = DateUtils.parseDate(teacher['재임용시작일']);
+                const promotionInfo = promotionEngine.getPromotionInfo(teacher);
+
+                // 다음 심사 정보
+                let nextReview = '-';
+                if (promotionInfo.nextPromotionDate) {
+                    nextReview = `승진 ${DateUtils.formatDate(promotionInfo.nextPromotionDate)}`;
+                } else if (endDate) {
+                    nextReview = `재계약 ${DateUtils.formatDate(endDate)}`;
+                }
+
                 const row = document.createElement('tr');
                 row.innerHTML = `
                     <td>${teacher['성명'] || '-'}</td>
                     <td>${teacher['소속'] || '-'}</td>
                     <td>${teacher['직급'] || '-'}</td>
-                    <td>${formatDate(firstAppointment)}</td>
-                    <td>${formatDate(renewalStart)}</td>
-                    <td>${formatDate(endDate)}</td>
-                    <td><span class="status-badge ${status}">${getStatusText(status)}</span></td>
-                    <td style="font-size: 0.9rem; font-weight: 500;">
-                        <div style="color: ${nextReview.retirement ? '#ffd93d' : '#ffffff'};">
-                            ${formatNextReview(nextReview)}
-                        </div>
-                    </td>
+                    <td>${DateUtils.formatDate(firstAppointment)}</td>
+                    <td>${DateUtils.formatDate(renewalStart)}</td>
+                    <td>${DateUtils.formatDate(endDate)}</td>
+                    <td><span class="badge badge-${status === 'danger' ? 'danger' : status === 'warning' ? 'warning' : 'success'}">
+                        ${status === 'danger' ? '긴급' : status === 'warning' ? '주의' : '정상'}
+                    </span></td>
+                    <td>${nextReview}</td>
                 `;
                 tbody.appendChild(row);
             });
         }
 
-        // 상태 텍스트
-        function getStatusText(status) {
-            switch(status) {
-                case 'danger': return '긴급';
-                case 'warning': return '주의';
-                default: return '정상';
-            }
-        }
-
-        // 테이블 필터링
+        // 검색 필터
         function filterTable() {
             const searchTerm = document.getElementById('searchBox').value.toLowerCase();
-            
+
             filteredData = facultyData.filter(teacher => {
                 const name = (teacher['성명'] || '').toLowerCase();
                 const department = (teacher['소속'] || '').toLowerCase();
                 const rank = (teacher['직급'] || '').toLowerCase();
-                
-                return name.includes(searchTerm) || 
-                       department.includes(searchTerm) || 
+
+                return name.includes(searchTerm) ||
+                       department.includes(searchTerm) ||
                        rank.includes(searchTerm);
             });
-            
+
             updateFacultyTable();
         }
 
-        // 직급별 필터링
-        function filterByRank(rank) {
-            document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
-            event.target.classList.add('active');
-            
-            if (rank === 'all') {
-                filteredData = [...facultyData];
-            } else if (rank === '비정년') {
-                filteredData = facultyData.filter(teacher => 
-                    teacher['직급'] && teacher['직급'].includes('비정년트랙')
-                );
-            } else {
-                filteredData = facultyData.filter(teacher => 
-                    teacher['직급'] && teacher['직급'].includes(rank) && !teacher['직급'].includes('비정년트랙')
-                );
-            }
-            
-            updateFacultyTable();
-        }
+        // 드래그 앤 드롭
+        const uploadSection = document.querySelector('.upload-section');
 
-        // 파일 드래그 앤 드롭
-        const fileUpload = document.querySelector('.file-upload');
-        
-        fileUpload.addEventListener('dragover', (e) => {
+        uploadSection.addEventListener('dragover', (e) => {
             e.preventDefault();
-            fileUpload.style.borderColor = 'var(--accent-color)';
-            fileUpload.style.background = 'rgba(240, 147, 251, 0.1)';
+            uploadSection.style.borderColor = 'var(--color-primary)';
         });
-        
-        fileUpload.addEventListener('dragleave', (e) => {
+
+        uploadSection.addEventListener('dragleave', (e) => {
             e.preventDefault();
-            fileUpload.style.borderColor = 'var(--border-color)';
-            fileUpload.style.background = 'var(--card-bg)';
+            uploadSection.style.borderColor = 'var(--border-color)';
         });
-        
-        fileUpload.addEventListener('drop', (e) => {
+
+        uploadSection.addEventListener('drop', (e) => {
             e.preventDefault();
-            fileUpload.style.borderColor = 'var(--border-color)';
-            fileUpload.style.background = 'var(--card-bg)';
-            
+            uploadSection.style.borderColor = 'var(--border-color)';
+
             const files = e.dataTransfer.files;
             if (files.length > 0) {
                 const event = { target: { files: [files[0]] } };
                 loadExcelFile(event);
+            }
+        });
+
+        // 페이지 로드 시 저장된 데이터 복원
+        window.addEventListener('load', () => {
+            const savedData = StorageUtils.get('facultyData');
+            if (savedData) {
+                facultyData = savedData;
+                filteredData = [...facultyData];
+                updateDashboard();
             }
         });
     </script>
