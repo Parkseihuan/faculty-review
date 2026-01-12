@@ -162,6 +162,37 @@
             background-color: var(--color-success);
             color: white;
         }
+
+        .promotion-group {
+            margin-bottom: var(--spacing-xl);
+        }
+
+        .group-header {
+            font-size: var(--font-size-xl);
+            font-weight: 600;
+            color: var(--text-primary);
+            padding: var(--spacing-md) 0;
+            border-bottom: 2px solid var(--color-primary);
+            margin-bottom: var(--spacing-md);
+        }
+
+        .subgroup-section {
+            margin-bottom: var(--spacing-lg);
+        }
+
+        .subgroup-header {
+            font-size: var(--font-size-lg);
+            font-weight: 500;
+            color: var(--text-secondary);
+            padding: var(--spacing-sm) 0 var(--spacing-sm) var(--spacing-sm);
+            margin-bottom: var(--spacing-sm);
+            background: var(--bg-secondary);
+            border-left: 3px solid var(--color-primary);
+        }
+
+        .promotion-group .table-wrapper {
+            margin-bottom: var(--spacing-md);
+        }
     </style>
 </head>
 <body>
@@ -247,7 +278,7 @@
         <!-- 검색 및 필터 -->
         <div class="card">
             <div class="card-header">
-                <h3 class="card-title">승진 대상자 목록</h3>
+                <h3 class="card-title">승진 대상자 목록 (당해 연도)</h3>
             </div>
             <div class="card-body">
                 <div class="search-controls no-print">
@@ -261,29 +292,10 @@
                     <button class="btn btn-primary btn-sm" onclick="printPromotionList()">📄 인쇄</button>
                 </div>
 
-                <div class="table-wrapper">
-                    <table class="table" id="promotionTable">
-                        <thead>
-                            <tr>
-                                <th>성명</th>
-                                <th>소속</th>
-                                <th>현직급</th>
-                                <th>임용일</th>
-                                <th>재직기간</th>
-                                <th>승진예정일</th>
-                                <th>서류마감</th>
-                                <th>D-Day</th>
-                                <th>상태</th>
-                            </tr>
-                        </thead>
-                        <tbody id="promotionTableBody">
-                            <tr>
-                                <td colspan="9" class="empty-state">
-                                    엑셀 파일을 업로드하여 데이터를 불러오세요
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
+                <div id="promotionGroupsContainer">
+                    <div class="empty-state" style="padding: var(--spacing-xl); text-align: center; color: var(--text-muted);">
+                        엑셀 파일을 업로드하여 데이터를 불러오세요
+                    </div>
                 </div>
             </div>
         </div>
@@ -492,43 +504,27 @@
             document.getElementById('urgentCount').textContent = stats.urgentCount;
         }
 
-        // 테이블 업데이트
-        function updateTable() {
-            const tbody = document.getElementById('promotionTableBody');
-            tbody.innerHTML = '';
+        // 테이블 행 생성 헬퍼 함수
+        function createTableRow(candidate) {
+            const teacher = candidate.teacher;
+            const info = candidate.promotionInfo;
 
-            if (filteredCandidates.length === 0) {
-                tbody.innerHTML = `
-                    <tr>
-                        <td colspan="9" class="empty-state">
-                            ${promotionCandidates.length === 0 ? '승진 대상자가 없습니다.' : '검색 결과가 없습니다.'}
-                        </td>
-                    </tr>
-                `;
-                return;
+            // 상태 배지
+            let statusBadge = '';
+            if (info.daysUntilDeadline !== null && info.daysUntilDeadline <= 30 && info.daysUntilDeadline >= 0) {
+                statusBadge = '<span class="badge badge-urgent">긴급</span>';
+            } else if (info.daysUntilDeadline !== null && info.daysUntilDeadline <= 60) {
+                statusBadge = '<span class="badge badge-warning">주의</span>';
+            } else {
+                statusBadge = '<span class="badge badge-normal">정상</span>';
             }
 
-            filteredCandidates.forEach(candidate => {
-                const teacher = candidate.teacher;
-                const info = candidate.promotionInfo;
+            // 임용일 가져오기
+            const firstAppointmentField = promotionEngine.getTeacherValue(teacher, '전임교원\n최초임용일');
+            const firstAppointmentDate = DateUtils.parseDate(firstAppointmentField);
 
-                const row = document.createElement('tr');
-
-                // 상태 배지
-                let statusBadge = '';
-                if (info.daysUntilDeadline !== null && info.daysUntilDeadline <= 30 && info.daysUntilDeadline >= 0) {
-                    statusBadge = '<span class="badge badge-urgent">긴급</span>';
-                } else if (info.daysUntilDeadline !== null && info.daysUntilDeadline <= 60) {
-                    statusBadge = '<span class="badge badge-warning">주의</span>';
-                } else {
-                    statusBadge = '<span class="badge badge-normal">정상</span>';
-                }
-
-                // 임용일 가져오기 (헤더명 정규화 처리)
-                const firstAppointmentField = promotionEngine.getTeacherValue(teacher, '전임교원\n최초임용일');
-                const firstAppointmentDate = DateUtils.parseDate(firstAppointmentField);
-
-                row.innerHTML = `
+            return `
+                <tr>
                     <td>${teacher['성명'] || '-'}</td>
                     <td>${teacher['소속'] || '-'}</td>
                     <td>${info.currentRank || '-'}</td>
@@ -538,10 +534,92 @@
                     <td>${DateUtils.formatDate(info.submissionDeadline)}</td>
                     <td>${info.daysUntilDeadline !== null ? 'D-' + info.daysUntilDeadline : '-'}</td>
                     <td>${statusBadge}</td>
-                `;
+                </tr>
+            `;
+        }
 
-                tbody.appendChild(row);
+        // 그룹별 테이블 렌더링
+        function renderGroupTable(candidates, title) {
+            if (candidates.length === 0) return '';
+
+            let html = '<div class="subgroup-section">';
+            html += `<div class="subgroup-header">${title} (${candidates.length}명)</div>`;
+            html += '<div class="table-wrapper">';
+            html += '<table class="table">';
+            html += `
+                <thead>
+                    <tr>
+                        <th>성명</th>
+                        <th>소속</th>
+                        <th>현직급</th>
+                        <th>임용일</th>
+                        <th>재직기간</th>
+                        <th>승진예정일</th>
+                        <th>서류마감</th>
+                        <th>D-Day</th>
+                        <th>상태</th>
+                    </tr>
+                </thead>
+                <tbody>
+            `;
+
+            candidates.forEach(candidate => {
+                html += createTableRow(candidate);
             });
+
+            html += '</tbody></table></div></div>';
+            return html;
+        }
+
+        // 테이블 업데이트 (그룹별)
+        function updateTable() {
+            const container = document.getElementById('promotionGroupsContainer');
+
+            if (filteredCandidates.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state" style="padding: var(--spacing-xl); text-align: center; color: var(--text-muted);">
+                        ${promotionCandidates.length === 0 ? '승진 대상자가 없습니다.' : '검색 결과가 없습니다.'}
+                    </div>
+                `;
+                return;
+            }
+
+            // 그룹화
+            const stats = promotionEngine.calculateStatistics(filteredCandidates);
+            let html = '';
+
+            // 시기별로 그룹화
+            ['april', 'october'].forEach(period => {
+                const periodCandidates = stats.groups[period];
+                if (periodCandidates.length === 0) return;
+
+                const periodGroups = promotionEngine.groupByTrackAndPath(periodCandidates);
+                const periodLabel = period === 'april' ? '4월 승진 대상자' : '10월 승진 대상자';
+
+                html += '<div class="promotion-group">';
+                html += `<div class="group-header">${periodLabel}</div>`;
+
+                // 정년트랙 전임교원
+                if (periodGroups.tenure.associateToFull.length > 0 || periodGroups.tenure.assistantToAssociate.length > 0) {
+                    html += '<h4 style="font-size: var(--font-size-lg); font-weight: 600; margin: var(--spacing-md) 0;">정년트랙 전임교원</h4>';
+
+                    // 부교수 -> 교수
+                    html += renderGroupTable(periodGroups.tenure.associateToFull, '▸ 부교수 → 교수');
+
+                    // 조교수 -> 부교수
+                    html += renderGroupTable(periodGroups.tenure.assistantToAssociate, '▸ 조교수 → 부교수');
+                }
+
+                // 비정년트랙 전임교원
+                if (periodGroups.nonTenure.assistantToAssociate.length > 0) {
+                    html += '<h4 style="font-size: var(--font-size-lg); font-weight: 600; margin: var(--spacing-md) 0;">비정년트랙 전임교원</h4>';
+                    html += renderGroupTable(periodGroups.nonTenure.assistantToAssociate, '▸ 조교수 → 부교수');
+                }
+
+                html += '</div>';
+            });
+
+            container.innerHTML = html;
         }
 
         // 검색 필터
