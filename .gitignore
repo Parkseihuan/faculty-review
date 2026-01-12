@@ -1,0 +1,28 @@
+# 개인정보 포함 파일
+*.xls
+*.xlsx
+*.pdf
+
+# Claude Code
+.claude/
+
+# 임시 파일
+*.tmp
+*.log
+
+# OS 관련
+.DS_Store
+Thumbs.db
+
+# 에디터 관련
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Node modules (필요시)
+node_modules/
+
+# 빌드 결과물
+dist/
+build/
