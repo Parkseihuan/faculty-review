@@ -140,19 +140,31 @@ class PromotionEngine {
         if (!eligibleDate) return null;
 
         const year = eligibleDate.getFullYear();
-        const month = eligibleDate.getMonth() + 1;
+        const month = eligibleDate.getMonth(); // 0-based (0 = 1월, 3 = 4월, 9 = 10월)
+        const day = eligibleDate.getDate();
 
-        // 자격일이 속한 달에 따라 다음 승진일 결정
-        if (month <= 3) {
-            // 1~3월: 해당년도 4월 1일
+        // 정확히 4월 1일이면 그대로 반환
+        if (month === 3 && day === 1) {
             return new Date(year, 3, 1);
-        } else if (month <= 9) {
-            // 4~9월: 해당년도 10월 1일
-            return new Date(year, 9, 1);
-        } else {
-            // 10~12월: 다음년도 4월 1일
-            return new Date(year + 1, 3, 1);
         }
+
+        // 정확히 10월 1일이면 그대로 반환
+        if (month === 9 && day === 1) {
+            return new Date(year, 9, 1);
+        }
+
+        // 1~3월: 해당년도 4월 1일
+        if (month < 3) {
+            return new Date(year, 3, 1);
+        }
+
+        // 4~9월: 해당년도 10월 1일
+        if (month < 9) {
+            return new Date(year, 9, 1);
+        }
+
+        // 10~12월: 다음년도 4월 1일
+        return new Date(year + 1, 3, 1);
     }
 
     /**
@@ -350,10 +362,62 @@ class PromotionEngine {
     }
 
     /**
+     * 정년트랙/비정년트랙 및 승진 경로별 그룹화
+     */
+    groupByTrackAndPath(promotionCandidates) {
+        const groups = {
+            tenure: {
+                associateToFull: [],      // 정년트랙: 부교수 -> 교수
+                assistantToAssociate: []  // 정년트랙: 조교수 -> 부교수
+            },
+            nonTenure: {
+                assistantToAssociate: []  // 비정년트랙: 조교수 -> 부교수
+            }
+        };
+
+        promotionCandidates.forEach(candidate => {
+            const rank = candidate.teacher['직급'] || '';
+            const nextRank = candidate.promotionInfo.requirement?.nextRank || '';
+
+            // 정년트랙 vs 비정년트랙 판별
+            const isTenure = !rank.includes('비정년');
+
+            if (isTenure) {
+                // 정년트랙
+                if (rank.includes('부교수') && nextRank === '교수') {
+                    groups.tenure.associateToFull.push(candidate);
+                } else if (rank.includes('조교수') && nextRank === '부교수') {
+                    groups.tenure.assistantToAssociate.push(candidate);
+                }
+            } else {
+                // 비정년트랙 (조교수 -> 부교수만 가능)
+                if (rank.includes('조교수') && nextRank === '부교수') {
+                    groups.nonTenure.assistantToAssociate.push(candidate);
+                }
+            }
+        });
+
+        return groups;
+    }
+
+    /**
+     * 시기 및 트랙별 복합 그룹화
+     */
+    groupByPeriodAndTrack(promotionCandidates) {
+        const periodGroups = this.groupByPromotionPeriod(promotionCandidates);
+
+        return {
+            april: this.groupByTrackAndPath(periodGroups.april),
+            october: this.groupByTrackAndPath(periodGroups.october)
+        };
+    }
+
+    /**
      * 통계 계산
      */
     calculateStatistics(promotionCandidates) {
         const groups = this.groupByPromotionPeriod(promotionCandidates);
+        const groupsByTrack = this.groupByPeriodAndTrack(promotionCandidates);
         const nextPeriod = this.getNextPromotionPeriod();
 
         // 마감 임박 대상자 (D-30 이내)
@@ -375,6 +439,7 @@ class PromotionEngine {
             restrictedCount: restrictedCandidates.length,
             nextPeriod,
             groups,
+            groupsByTrack,  // 트랙별 그룹 추가
             urgentCandidates,
             restrictedCandidates
         };

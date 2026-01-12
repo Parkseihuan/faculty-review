@@ -138,6 +138,33 @@
             border-radius: var(--radius-sm);
             font-size: var(--font-size-sm);
         }
+
+        .group-section {
+            margin-bottom: var(--spacing-md);
+        }
+
+        .group-header {
+            font-weight: 600;
+            font-size: var(--font-size-base);
+            color: var(--text-primary);
+            padding: var(--spacing-sm) 0;
+            border-bottom: 1px solid var(--border-light);
+            margin-bottom: var(--spacing-sm);
+        }
+
+        .subgroup-header {
+            font-weight: 500;
+            font-size: var(--font-size-sm);
+            color: var(--text-secondary);
+            padding: var(--spacing-xs) 0 var(--spacing-xs) var(--spacing-sm);
+            margin-bottom: var(--spacing-xs);
+        }
+
+        .group-section .alert-list {
+            list-style: none;
+            max-height: none;
+            margin-bottom: var(--spacing-sm);
+        }
     </style>
 </head>
 <body>
@@ -236,7 +263,7 @@
 
         <!-- 승진 심사 알림 -->
         <div class="alert-section">
-            <h2 class="section-title">승진 심사 알림</h2>
+            <h2 class="section-title">승진 심사 알림 (당해 연도)</h2>
             <div class="alert-grid">
                 <div class="alert-card">
                     <div class="alert-title">
@@ -244,9 +271,9 @@
                         <span>4월 승진 대상 (2월 말 마감)</span>
                         <span class="badge badge-primary" id="aprilPromotionCount">-</span>
                     </div>
-                    <ul class="alert-list" id="aprilPromotionList">
-                        <li class="text-center text-muted p-3">데이터를 불러오는 중...</li>
-                    </ul>
+                    <div id="aprilPromotionContent">
+                        <p class="text-center text-muted p-3">데이터를 불러오는 중...</p>
+                    </div>
                 </div>
                 <div class="alert-card">
                     <div class="alert-title">
@@ -254,9 +281,9 @@
                         <span>10월 승진 대상 (8월 말 마감)</span>
                         <span class="badge badge-primary" id="octoberPromotionCount">-</span>
                     </div>
-                    <ul class="alert-list" id="octoberPromotionList">
-                        <li class="text-center text-muted p-3">데이터를 불러오는 중...</li>
-                    </ul>
+                    <div id="octoberPromotionContent">
+                        <p class="text-center text-muted p-3">데이터를 불러오는 중...</p>
+                    </div>
                 </div>
             </div>
         </div>
@@ -561,56 +588,102 @@
 
         // 승진 알림 업데이트
         function updatePromotionAlerts() {
-            const aprilList = document.getElementById('aprilPromotionList');
-            const octoberList = document.getElementById('octoberPromotionList');
+            const aprilContent = document.getElementById('aprilPromotionContent');
+            const octoberContent = document.getElementById('octoberPromotionContent');
 
-            aprilList.innerHTML = '';
-            octoberList.innerHTML = '';
+            aprilContent.innerHTML = '';
+            octoberContent.innerHTML = '';
 
             const promotionCandidates = promotionEngine.calculateAllPromotions(facultyData);
             const stats = promotionEngine.calculateStatistics(promotionCandidates);
 
-            // 4월 승진
-            if (stats.groups.april.length === 0) {
-                aprilList.innerHTML = '<li class="text-center text-muted p-3">해당 사항 없음</li>';
-            } else {
-                stats.groups.april.forEach(candidate => {
-                    const teacher = candidate.teacher;
-                    const info = candidate.promotionInfo;
+            // 그룹별 렌더링 함수
+            function renderGroupedList(container, trackGroups) {
+                let html = '';
 
-                    const li = document.createElement('li');
-                    li.className = 'alert-item';
-                    li.innerHTML = `
-                        <div>
-                            <div class="teacher-name">${teacher['성명']}</div>
-                            <div class="teacher-details">${teacher['소속']} • ${teacher['직급']}</div>
-                        </div>
-                        <div class="date-badge">${DateUtils.formatDate(info.nextPromotionDate)}</div>
-                    `;
-                    aprilList.appendChild(li);
-                });
+                // 정년트랙
+                if (trackGroups.tenure.associateToFull.length > 0 || trackGroups.tenure.assistantToAssociate.length > 0) {
+                    html += '<div class="group-section">';
+                    html += '<div class="group-header">정년트랙 전임교원</div>';
+
+                    // 부교수 -> 교수
+                    if (trackGroups.tenure.associateToFull.length > 0) {
+                        html += '<div class="subgroup-header">▸ 부교수 → 교수 (' + trackGroups.tenure.associateToFull.length + '명)</div>';
+                        html += '<ul class="alert-list">';
+                        trackGroups.tenure.associateToFull.forEach(candidate => {
+                            const teacher = candidate.teacher;
+                            const info = candidate.promotionInfo;
+                            html += `
+                                <li class="alert-item">
+                                    <div>
+                                        <div class="teacher-name">${teacher['성명']}</div>
+                                        <div class="teacher-details">${teacher['소속']} • ${teacher['직급']}</div>
+                                    </div>
+                                    <div class="date-badge">${DateUtils.formatDate(info.nextPromotionDate)}</div>
+                                </li>
+                            `;
+                        });
+                        html += '</ul>';
+                    }
+
+                    // 조교수 -> 부교수
+                    if (trackGroups.tenure.assistantToAssociate.length > 0) {
+                        html += '<div class="subgroup-header">▸ 조교수 → 부교수 (' + trackGroups.tenure.assistantToAssociate.length + '명)</div>';
+                        html += '<ul class="alert-list">';
+                        trackGroups.tenure.assistantToAssociate.forEach(candidate => {
+                            const teacher = candidate.teacher;
+                            const info = candidate.promotionInfo;
+                            html += `
+                                <li class="alert-item">
+                                    <div>
+                                        <div class="teacher-name">${teacher['성명']}</div>
+                                        <div class="teacher-details">${teacher['소속']} • ${teacher['직급']}</div>
+                                    </div>
+                                    <div class="date-badge">${DateUtils.formatDate(info.nextPromotionDate)}</div>
+                                </li>
+                            `;
+                        });
+                        html += '</ul>';
+                    }
+
+                    html += '</div>';
+                }
+
+                // 비정년트랙
+                if (trackGroups.nonTenure.assistantToAssociate.length > 0) {
+                    html += '<div class="group-section">';
+                    html += '<div class="group-header">비정년트랙 전임교원</div>';
+                    html += '<div class="subgroup-header">▸ 조교수 → 부교수 (' + trackGroups.nonTenure.assistantToAssociate.length + '명)</div>';
+                    html += '<ul class="alert-list">';
+                    trackGroups.nonTenure.assistantToAssociate.forEach(candidate => {
+                        const teacher = candidate.teacher;
+                        const info = candidate.promotionInfo;
+                        html += `
+                            <li class="alert-item">
+                                <div>
+                                    <div class="teacher-name">${teacher['성명']}</div>
+                                    <div class="teacher-details">${teacher['소속']} • ${teacher['직급']}</div>
+                                </div>
+                                <div class="date-badge">${DateUtils.formatDate(info.nextPromotionDate)}</div>
+                            </li>
+                        `;
+                    });
+                    html += '</ul>';
+                    html += '</div>';
+                }
+
+                if (html === '') {
+                    html = '<p class="text-center text-muted p-3">해당 사항 없음</p>';
+                }
+
+                container.innerHTML = html;
             }
+
+            // 4월 승진
+            renderGroupedList(aprilContent, stats.groupsByTrack.april);
 
             // 10월 승진
-            if (stats.groups.october.length === 0) {
-                octoberList.innerHTML = '<li class="text-center text-muted p-3">해당 사항 없음</li>';
-            } else {
-                stats.groups.october.forEach(candidate => {
-                    const teacher = candidate.teacher;
-                    const info = candidate.promotionInfo;
-
-                    const li = document.createElement('li');
-                    li.className = 'alert-item';
-                    li.innerHTML = `
-                        <div>
-                            <div class="teacher-name">${teacher['성명']}</div>
-                            <div class="teacher-details">${teacher['소속']} • ${teacher['직급']}</div>
-                        </div>
-                        <div class="date-badge">${DateUtils.formatDate(info.nextPromotionDate)}</div>
-                    `;
-                    octoberList.appendChild(li);
-                });
-            }
+            renderGroupedList(octoberContent, stats.groupsByTrack.october);
 
             document.getElementById('aprilPromotionCount').textContent = stats.groups.april.length + '명';
             document.getElementById('octoberPromotionCount').textContent = stats.groups.october.length + '명';
