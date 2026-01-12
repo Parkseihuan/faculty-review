@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>규정 관리 - 교원 인사 관리 시스템</title>
+    <link rel="stylesheet" href="css/common.css">
+    <link rel="stylesheet" href="css/navigation.css">
+    <style>
+        body {
+            padding-top: 60px;
+        }
+
+        .page-header {
+            background: var(--bg-primary);
+            border-bottom: 1px solid var(--border-color);
+            padding: var(--spacing-xl) 0;
+            margin-bottom: var(--spacing-xl);
+        }
+
+        .page-title {
+            font-size: var(--font-size-3xl);
+            font-weight: 600;
+            margin-bottom: var(--spacing-sm);
+        }
+
+        .regulations-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: var(--spacing-md);
+            margin-bottom: var(--spacing-xl);
+        }
+
+        .regulation-card {
+            background: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: var(--spacing-lg);
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+
+        .regulation-card:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-md);
+            border-color: var(--color-primary);
+        }
+
+        .regulation-card-icon {
+            font-size: 2rem;
+            margin-bottom: var(--spacing-md);
+        }
+
+        .regulation-card-title {
+            font-size: var(--font-size-xl);
+            font-weight: 600;
+            margin-bottom: var(--spacing-sm);
+            color: var(--text-primary);
+        }
+
+        .regulation-card-description {
+            font-size: var(--font-size-sm);
+            color: var(--text-secondary);
+            margin-bottom: var(--spacing-md);
+        }
+
+        .regulation-card-link {
+            display: inline-flex;
+            align-items: center;
+            gap: var(--spacing-xs);
+            color: var(--color-primary);
+            text-decoration: none;
+            font-size: var(--font-size-sm);
+            font-weight: 500;
+        }
+
+        .regulation-card-link:hover {
+            text-decoration: underline;
+        }
+
+        .upload-section {
+            background: var(--bg-secondary);
+            border: 2px dashed var(--border-color);
+            border-radius: var(--radius-md);
+            padding: var(--spacing-xl);
+            text-align: center;
+            margin-bottom: var(--spacing-xl);
+        }
+
+        .upload-section h3 {
+            font-size: var(--font-size-xl);
+            font-weight: 600;
+            margin-bottom: var(--spacing-md);
+            color: var(--text-primary);
+        }
+
+        .upload-section p {
+            font-size: var(--font-size-sm);
+            color: var(--text-secondary);
+            margin-bottom: var(--spacing-lg);
+        }
+
+        .coming-soon-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            background: var(--color-warning);
+            color: var(--text-primary);
+            border-radius: var(--radius-sm);
+            font-size: var(--font-size-sm);
+            font-weight: 500;
+            margin-left: var(--spacing-sm);
+        }
+    </style>
+</head>
+<body>
+    <!-- 네비게이션 바 -->
+    <nav class="navbar">
+        <div class="navbar-container">
+            <a href="index.html" class="navbar-brand">교원 인사 관리 시스템</a>
+            <button class="navbar-toggle" aria-label="메뉴 토글">
+                <span class="navbar-toggle-icon"></span>
+            </button>
+            <ul class="navbar-menu">
+                <li class="navbar-item">
+                    <a href="index.html" class="navbar-link" data-page="dashboard">대시보드</a>
+                </li>
+                <li class="navbar-item">
+                    <a href="promotion.html" class="navbar-link" data-page="promotion">승진</a>
+                </li>
+                <li class="navbar-item">
+                    <a href="reappointment.html" class="navbar-link" data-page="reappointment">재임용</a>
+                </li>
+                <li class="navbar-item">
+                    <a href="regulations.html" class="navbar-link" data-page="regulations">규정 관리</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- 페이지 헤더 -->
+    <div class="page-header">
+        <div class="container">
+            <h1 class="page-title">규정 관리</h1>
+            <p class="section-subtitle">교원 인사 관련 규정 및 지침 관리</p>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- 현재 등록된 규정 -->
+        <h2 class="section-title">등록된 규정</h2>
+        <div class="regulations-list">
+            <div class="regulation-card" onclick="window.location.href='promotion-process.html'">
+                <div class="regulation-card-icon">📘</div>
+                <h3 class="regulation-card-title">교원인사규정 제3장</h3>
+                <p class="regulation-card-description">승진 관련 규정 - 제15조(승진 소요 연한), 제16조(승진 시기)</p>
+                <a href="promotion-process.html" class="regulation-card-link">
+                    자세히 보기 →
+                </a>
+            </div>
+
+            <div class="regulation-card" style="opacity: 0.6; cursor: not-allowed;">
+                <div class="regulation-card-icon">📗</div>
+                <h3 class="regulation-card-title">교원인사규정 제4장 <span class="coming-soon-badge">준비중</span></h3>
+                <p class="regulation-card-description">재임용 관련 규정 - 비정년트랙 교원 재임용 심사 절차</p>
+                <span class="regulation-card-link" style="cursor: not-allowed;">
+                    준비 중
+                </span>
+            </div>
+
+            <div class="regulation-card" style="opacity: 0.6; cursor: not-allowed;">
+                <div class="regulation-card-icon">📕</div>
+                <h3 class="regulation-card-title">교원 평가 규정 <span class="coming-soon-badge">준비중</span></h3>
+                <p class="regulation-card-description">교원 업적 평가 및 심사 기준</p>
+                <span class="regulation-card-link" style="cursor: not-allowed;">
+                    준비 중
+                </span>
+            </div>
+        </div>
+
+        <!-- 규정 파일 업로드 -->
+        <h2 class="section-title">규정 파일 업로드 <span class="coming-soon-badge">준비중</span></h2>
+        <div class="upload-section">
+            <h3>📤 규정 파일 업로드 기능</h3>
+            <p>
+                PDF, DOCX, MD 형식의 규정 파일을 업로드하고 관리할 수 있는 기능입니다.<br>
+                현재 개발 중이며, 추후 업데이트될 예정입니다.
+            </p>
+            <button class="btn btn-secondary" disabled>업로드 (준비 중)</button>
+        </div>
+
+        <!-- 참고 정보 -->
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">💡 참고 사항</h3>
+            </div>
+            <div class="card-body">
+                <ul style="padding-left: var(--spacing-lg); line-height: 1.8;">
+                    <li>현재 교원인사규정 파일은 GitHub 저장소의 <code>교원인사규정.md</code> 파일에서 관리됩니다.</li>
+                    <li>승진 프로세스 페이지에서 교원인사규정 제3장(승진)의 내용을 확인할 수 있습니다.</li>
+                    <li>향후 웹 인터페이스를 통한 규정 파일 업로드 및 버전 관리 기능이 추가될 예정입니다.</li>
+                    <li>규정 변경 시 시스템이 자동으로 업데이트되도록 개선할 계획입니다.</li>
+                </ul>
+            </div>
+        </div>
+
+        <div style="margin-top: var(--spacing-xl); text-align: center;">
+            <a href="index.html" class="btn btn-primary">대시보드로 돌아가기</a>
+        </div>
+    </div>
+
+    <!-- JavaScript -->
+    <script src="js/navigation.js"></script>
+</body>
+</html>

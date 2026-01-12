@@ -219,14 +219,12 @@
         </div>
 
         <!-- 기준 날짜 -->
-        <div class="card mb-4">
-            <div class="card-body">
-                <div class="d-flex align-items-center gap-3 flex-wrap">
-                    <label for="baseDate" class="form-label mb-0">기준 날짜:</label>
-                    <input type="date" id="baseDate" class="form-control" style="width: auto;" onchange="onBaseDateChange()">
-                    <button class="btn btn-secondary btn-sm" onclick="setToday()">오늘</button>
-                    <span class="text-muted" id="baseDateDisplay">-</span>
-                </div>
+        <div class="card">
+            <div class="d-flex align-items-center gap-3 flex-wrap">
+                <label for="baseDate" class="form-label mb-0"><strong>기준 날짜:</strong></label>
+                <input type="date" id="baseDate" class="form-control" style="width: 180px;" onchange="onBaseDateChange()">
+                <button class="btn btn-secondary btn-sm" onclick="setToday()">오늘</button>
+                <span class="text-muted" id="baseDateDisplay">-</span>
             </div>
         </div>
 
@@ -261,7 +259,7 @@
 
         <!-- 재계약 알림 -->
         <div class="alert-section">
-            <h2 class="section-title mb-3">재계약 알림</h2>
+            <h2 class="section-title">재계약 알림</h2>
             <div class="alert-grid">
                 <div class="alert-card danger">
                     <div class="alert-title">
@@ -288,7 +286,7 @@
 
         <!-- 승진 심사 알림 -->
         <div class="alert-section">
-            <h2 class="section-title mb-3">승진 심사 알림</h2>
+            <h2 class="section-title">승진 심사 알림</h2>
             <div class="alert-grid">
                 <div class="alert-card">
                     <div class="alert-title">

@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>재임용 관리 - 교원 인사 관리 시스템</title>
+    <link rel="stylesheet" href="css/common.css">
+    <link rel="stylesheet" href="css/navigation.css">
+    <style>
+        body {
+            padding-top: 60px;
+        }
+
+        .page-header {
+            background: var(--bg-primary);
+            border-bottom: 1px solid var(--border-color);
+            padding: var(--spacing-xl) 0;
+            margin-bottom: var(--spacing-xl);
+        }
+
+        .page-title {
+            font-size: var(--font-size-3xl);
+            font-weight: 600;
+            margin-bottom: var(--spacing-sm);
+        }
+
+        .coming-soon {
+            text-align: center;
+            padding: var(--spacing-xl) 0;
+            min-height: 60vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .coming-soon-icon {
+            font-size: 4rem;
+            margin-bottom: var(--spacing-lg);
+        }
+
+        .coming-soon-title {
+            font-size: var(--font-size-2xl);
+            font-weight: 600;
+            margin-bottom: var(--spacing-md);
+            color: var(--text-primary);
+        }
+
+        .coming-soon-description {
+            font-size: var(--font-size-lg);
+            color: var(--text-secondary);
+            margin-bottom: var(--spacing-xl);
+            max-width: 600px;
+        }
+
+        .feature-list {
+            text-align: left;
+            max-width: 600px;
+            margin: 0 auto var(--spacing-xl);
+        }
+
+        .feature-item {
+            padding: var(--spacing-md);
+            margin-bottom: var(--spacing-sm);
+            background: var(--bg-secondary);
+            border-radius: var(--radius-md);
+            border-left: 4px solid var(--color-primary);
+        }
+
+        .feature-item h4 {
+            font-size: var(--font-size-lg);
+            font-weight: 600;
+            margin-bottom: var(--spacing-xs);
+            color: var(--text-primary);
+        }
+
+        .feature-item p {
+            font-size: var(--font-size-sm);
+            color: var(--text-secondary);
+            margin: 0;
+        }
+    </style>
+</head>
+<body>
+    <!-- 네비게이션 바 -->
+    <nav class="navbar">
+        <div class="navbar-container">
+            <a href="index.html" class="navbar-brand">교원 인사 관리 시스템</a>
+            <button class="navbar-toggle" aria-label="메뉴 토글">
+                <span class="navbar-toggle-icon"></span>
+            </button>
+            <ul class="navbar-menu">
+                <li class="navbar-item">
+                    <a href="index.html" class="navbar-link" data-page="dashboard">대시보드</a>
+                </li>
+                <li class="navbar-item">
+                    <a href="promotion.html" class="navbar-link" data-page="promotion">승진</a>
+                </li>
+                <li class="navbar-item">
+                    <a href="reappointment.html" class="navbar-link" data-page="reappointment">재임용</a>
+                </li>
+                <li class="navbar-item">
+                    <a href="regulations.html" class="navbar-link" data-page="regulations">규정 관리</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- 페이지 헤더 -->
+    <div class="page-header">
+        <div class="container">
+            <h1 class="page-title">재임용 관리</h1>
+            <p class="section-subtitle">비정년트랙 교원 재임용 심사 관리</p>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="coming-soon">
+            <div class="coming-soon-icon">🚧</div>
+            <h2 class="coming-soon-title">준비 중입니다</h2>
+            <p class="coming-soon-description">
+                재임용 관리 기능은 현재 개발 중입니다. 승진 시스템 완성 후 다음 단계로 구현될 예정입니다.
+            </p>
+
+            <div class="feature-list">
+                <div class="feature-item">
+                    <h4>📋 재임용 대상자 관리</h4>
+                    <p>비정년트랙 교원의 재임용 심사 대상자를 자동으로 식별하고 관리합니다.</p>
+                </div>
+                <div class="feature-item">
+                    <h4>⏰ 마감일 알림</h4>
+                    <p>재임용 계약 종료일을 추적하고 사전에 알림을 제공합니다.</p>
+                </div>
+                <div class="feature-item">
+                    <h4>📊 심사 진행 현황</h4>
+                    <p>재임용 심사의 단계별 진행 상황을 한눈에 파악할 수 있습니다.</p>
+                </div>
+                <div class="feature-item">
+                    <h4>📄 문서 관리</h4>
+                    <p>재임용 관련 서류와 심사 자료를 체계적으로 관리합니다.</p>
+                </div>
+            </div>
+
+            <div>
+                <a href="index.html" class="btn btn-primary">대시보드로 돌아가기</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript -->
+    <script src="js/navigation.js"></script>
+</body>
+</html>
