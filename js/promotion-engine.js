@@ -156,7 +156,7 @@ class PromotionEngine {
     }
 
     /**
-     * 다음 승진일 계산
+     * 다음 승진일 계산 (당해 연도만)
      */
     getNextPromotionDate(teacher) {
         const eligibleDate = this.getPromotionEligibleDate(teacher);
@@ -166,6 +166,12 @@ class PromotionEngine {
 
         // 기준일보다 이전이면 null (이미 지난 승진일)
         if (promotionDate && promotionDate < this.baseDate) {
+            return null;
+        }
+
+        // 당해 연도를 초과하면 null (다음 연도 이후 승진은 제외)
+        const baseYear = this.baseDate.getFullYear();
+        if (promotionDate && promotionDate.getFullYear() > baseYear) {
             return null;
         }
 
