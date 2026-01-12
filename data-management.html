@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>데이터 관리 - 교원 인사 관리 시스템</title>
+    <link rel="stylesheet" href="css/common.css">
+    <link rel="stylesheet" href="css/navigation.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <style>
+        body {
+            padding-top: 60px;
+            padding-bottom: 40px;
+        }
+
+        .page-header {
+            background: var(--bg-primary);
+            border-bottom: 1px solid var(--border-color);
+            padding: var(--spacing-xl) 0;
+            margin-bottom: var(--spacing-xl);
+        }
+
+        .page-title {
+            font-size: var(--font-size-3xl);
+            font-weight: 600;
+            margin-bottom: var(--spacing-sm);
+        }
+
+        .upload-section {
+            background: var(--bg-primary);
+            border: 2px dashed var(--border-color);
+            border-radius: var(--radius-md);
+            padding: var(--spacing-xl);
+            text-align: center;
+            margin-bottom: var(--spacing-xl);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .upload-section:hover {
+            border-color: var(--color-primary);
+            background: var(--bg-secondary);
+        }
+
+        .upload-section.drag-over {
+            border-color: var(--color-primary);
+            background: var(--bg-secondary);
+        }
+
+        .upload-section input {
+            display: none;
+        }
+
+        .upload-icon {
+            font-size: 3rem;
+            margin-bottom: var(--spacing-md);
+        }
+
+        .upload-title {
+            font-size: var(--font-size-xl);
+            font-weight: 600;
+            margin-bottom: var(--spacing-sm);
+        }
+
+        .upload-description {
+            font-size: var(--font-size-sm);
+            color: var(--text-secondary);
+            margin-bottom: var(--spacing-md);
+        }
+
+        .file-info {
+            display: none;
+            background: var(--bg-secondary);
+            padding: var(--spacing-md);
+            border-radius: var(--radius-sm);
+            margin-top: var(--spacing-md);
+        }
+
+        .file-info.show {
+            display: block;
+        }
+
+        .stats-section {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: var(--spacing-md);
+            margin-bottom: var(--spacing-xl);
+        }
+
+        .stat-box {
+            background: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: var(--spacing-lg);
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--color-primary);
+            margin-bottom: var(--spacing-xs);
+        }
+
+        .stat-label {
+            font-size: var(--font-size-sm);
+            color: var(--text-secondary);
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: var(--spacing-sm);
+            flex-wrap: wrap;
+        }
+
+        .data-preview {
+            margin-top: var(--spacing-xl);
+        }
+
+        .table-wrapper {
+            overflow-x: auto;
+            border-radius: var(--radius-md);
+            border: 1px solid var(--border-color);
+            max-height: 500px;
+            overflow-y: auto;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: var(--spacing-xl);
+            color: var(--text-muted);
+        }
+    </style>
+</head>
+<body>
+    <!-- 네비게이션 바 -->
+    <nav class="navbar">
+        <div class="navbar-container">
+            <a href="index.html" class="navbar-brand">교원 인사 관리 시스템</a>
+            <button class="navbar-toggle" aria-label="메뉴 토글">
+                <span class="navbar-toggle-icon"></span>
+            </button>
+            <ul class="navbar-menu">
+                <li class="navbar-item">
+                    <a href="index.html" class="navbar-link" data-page="dashboard">대시보드</a>
+                </li>
+                <li class="navbar-item">
+                    <a href="promotion.html" class="navbar-link" data-page="promotion">승진</a>
+                </li>
+                <li class="navbar-item">
+                    <a href="reappointment.html" class="navbar-link" data-page="reappointment">재임용</a>
+                </li>
+                <li class="navbar-item">
+                    <a href="data-management.html" class="navbar-link" data-page="data">데이터 관리</a>
+                </li>
+                <li class="navbar-item">
+                    <a href="process.html" class="navbar-link" data-page="process">프로세스 & 규정</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- 페이지 헤더 -->
+    <div class="page-header">
+        <div class="container">
+            <h1 class="page-title">데이터 관리</h1>
+            <p class="section-subtitle">교원현황 데이터를 업로드하고 관리하세요</p>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- 파일 업로드 -->
+        <div class="upload-section" id="uploadSection">
+            <input type="file" id="fileInput" accept=".xlsx,.xls" onchange="loadExcelFile(event)">
+            <div class="upload-icon">📊</div>
+            <h3 class="upload-title">교원현황 엑셀 파일 업로드</h3>
+            <p class="upload-description">
+                클릭하거나 파일을 드래그하여 업로드하세요<br>
+                <small>(지원 형식: .xlsx, .xls)</small>
+            </p>
+            <button class="btn btn-primary" onclick="document.getElementById('fileInput').click()">
+                파일 선택
+            </button>
+            <div class="file-info" id="fileInfo">
+                <strong id="fileName"></strong> - <span id="fileSize"></span>
+            </div>
+        </div>
+
+        <!-- 데이터 통계 -->
+        <div class="stats-section" id="statsSection" style="display: none;">
+            <div class="stat-box">
+                <div class="stat-number" id="totalCount">0</div>
+                <div class="stat-label">전체 교원</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-number" id="tenureCount">0</div>
+                <div class="stat-label">정년트랙</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-number" id="nonTenureCount">0</div>
+                <div class="stat-label">비정년트랙</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-number" id="professorCount">0</div>
+                <div class="stat-label">교수</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-number" id="associateCount">0</div>
+                <div class="stat-label">부교수</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-number" id="assistantCount">0</div>
+                <div class="stat-label">조교수</div>
+            </div>
+        </div>
+
+        <!-- 액션 버튼 -->
+        <div class="card" id="actionCard" style="display: none;">
+            <div class="card-body">
+                <div class="action-buttons">
+                    <button class="btn btn-secondary" onclick="clearData()">
+                        🗑️ 데이터 초기화
+                    </button>
+                    <button class="btn btn-outline" onclick="exportData()">
+                        📥 데이터 내보내기 <span class="coming-soon-badge" style="display: inline-block; padding: 2px 6px; background: var(--color-warning); color: var(--text-primary); border-radius: var(--radius-sm); font-size: 0.75rem; margin-left: 4px;">준비중</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 데이터 미리보기 -->
+        <div class="data-preview" id="dataPreview" style="display: none;">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">데이터 미리보기</h3>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <input type="text" class="form-control" id="searchBox" placeholder="교원명, 소속, 직급 검색..." onkeyup="filterTable()">
+                    </div>
+                    <div class="table-wrapper">
+                        <table class="table" id="dataTable">
+                            <thead>
+                                <tr>
+                                    <th>성명</th>
+                                    <th>소속</th>
+                                    <th>직급</th>
+                                    <th>임용일</th>
+                                    <th>재임용시작일</th>
+                                    <th>종료일</th>
+                                    <th>재직구분</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tableBody">
+                                <tr>
+                                    <td colspan="7" class="empty-state">
+                                        데이터가 없습니다. 파일을 업로드해주세요.
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript -->
+    <script src="js/common.js"></script>
+    <script src="js/navigation.js"></script>
+    <script>
+        let facultyData = [];
+        let filteredData = [];
+
+        // 페이지 로드 시 저장된 데이터 복원
+        document.addEventListener('DOMContentLoaded', function() {
+            const savedData = StorageUtils.get('facultyData');
+            if (savedData) {
+                facultyData = savedData;
+                filteredData = [...facultyData];
+                updateUI();
+            }
+        });
+
+        // 헤더명 정규화
+        function getTeacherValue(teacher, fieldName) {
+            const possibleKeys = [
+                fieldName,
+                fieldName.replace(/\r?\n/g, ''),
+                fieldName.replace(/\r?\n/g, '\r\n'),
+                fieldName.replace(/\r?\n/g, '\n')
+            ];
+
+            for (const key of possibleKeys) {
+                if (teacher[key] !== undefined && teacher[key] !== null) {
+                    return teacher[key];
+                }
+            }
+            return null;
+        }
+
+        // 엑셀 파일 로드
+        async function loadExcelFile(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            // 파일 정보 표시
+            const fileInfo = document.getElementById('fileInfo');
+            const fileName = document.getElementById('fileName');
+            const fileSize = document.getElementById('fileSize');
+
+            fileName.textContent = file.name;
+            fileSize.textContent = (file.size / 1024 / 1024).toFixed(2) + ' MB';
+            fileInfo.classList.add('show');
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+
+                    const firstSheetName = workbook.SheetNames[0];
+                    const worksheet = workbook.Sheets[firstSheetName];
+                    const rawData = XLSX.utils.sheet_to_json(worksheet, {header: 1});
+
+                    // 헤더 찾기
+                    let headerRowIndex = -1;
+                    let headers = [];
+
+                    for (let i = 0; i < rawData.length; i++) {
+                        if (rawData[i] && rawData[i][0] === 'No.' && rawData[i].includes('성명')) {
+                            headerRowIndex = i;
+                            headers = rawData[i];
+                            break;
+                        }
+                    }
+
+                    if (headerRowIndex === -1) {
+                        throw new Error('헤더를 찾을 수 없습니다. 교원현황 엑셀 파일인지 확인해주세요.');
+                    }
+
+                    // 데이터 추출
+                    const actualDataRows = rawData.slice(headerRowIndex + 1).filter(row =>
+                        row && row.length > 0 && row[0] && typeof row[0] === 'number'
+                    );
+
+                    // 객체 배열로 변환
+                    const jsonData = actualDataRows.map(row => {
+                        const obj = {};
+                        headers.forEach((header, index) => {
+                            obj[header] = row[index];
+                        });
+                        return obj;
+                    });
+
+                    // 재직중인 전임교원만 필터링
+                    facultyData = jsonData.filter(teacher => {
+                        const workStatus = teacher['재직구분'];
+                        const position = teacher['직렬'];
+                        return workStatus && workStatus.toString().includes('재직') &&
+                               position && position.toString().includes('전임교원');
+                    });
+
+                    if (facultyData.length === 0) {
+                        alert('재직중인 전임교원 데이터가 없습니다.');
+                        return;
+                    }
+
+                    filteredData = [...facultyData];
+
+                    // 로컬 스토리지에 저장
+                    StorageUtils.set('facultyData', facultyData);
+
+                    updateUI();
+                    alert(`데이터가 성공적으로 업로드되었습니다.\n전임교원 ${facultyData.length}명의 정보가 저장되었습니다.`);
+
+                } catch (error) {
+                    console.error('파일 처리 오류:', error);
+                    alert('파일 읽기 중 오류가 발생했습니다: ' + error.message);
+                }
+            };
+
+            reader.readAsArrayBuffer(file);
+        }
+
+        // UI 업데이트
+        function updateUI() {
+            if (facultyData.length === 0) return;
+
+            // 통계 계산
+            let tenureCount = 0;
+            let nonTenureCount = 0;
+            let professorCount = 0;
+            let associateCount = 0;
+            let assistantCount = 0;
+
+            facultyData.forEach(teacher => {
+                const rank = teacher['직급'] || '';
+
+                if (rank.includes('비정년')) {
+                    nonTenureCount++;
+                } else {
+                    tenureCount++;
+                }
+
+                if (rank.includes('교수') && !rank.includes('조교수') && !rank.includes('부교수')) {
+                    professorCount++;
+                } else if (rank.includes('부교수')) {
+                    associateCount++;
+                } else if (rank.includes('조교수')) {
+                    assistantCount++;
+                }
+            });
+
+            // 통계 표시
+            document.getElementById('totalCount').textContent = facultyData.length;
+            document.getElementById('tenureCount').textContent = tenureCount;
+            document.getElementById('nonTenureCount').textContent = nonTenureCount;
+            document.getElementById('professorCount').textContent = professorCount;
+            document.getElementById('associateCount').textContent = associateCount;
+            document.getElementById('assistantCount').textContent = assistantCount;
+
+            document.getElementById('statsSection').style.display = 'grid';
+            document.getElementById('actionCard').style.display = 'block';
+            document.getElementById('dataPreview').style.display = 'block';
+
+            updateTable();
+        }
+
+        // 테이블 업데이트
+        function updateTable() {
+            const tbody = document.getElementById('tableBody');
+            tbody.innerHTML = '';
+
+            if (filteredData.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="7" class="empty-state">검색 결과가 없습니다.</td>
+                    </tr>
+                `;
+                return;
+            }
+
+            filteredData.slice(0, 100).forEach(teacher => {
+                const firstAppointment = DateUtils.parseDate(getTeacherValue(teacher, '전임교원\n최초임용일'));
+                const renewalStart = DateUtils.parseDate(teacher['재임용시작일']);
+                const renewalEnd = DateUtils.parseDate(teacher['재임용종료일']);
+                const initialEnd = DateUtils.parseDate(getTeacherValue(teacher, '최초임용\n종료일'));
+                const endDate = renewalEnd || initialEnd;
+
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${teacher['성명'] || '-'}</td>
+                    <td>${teacher['소속'] || '-'}</td>
+                    <td>${teacher['직급'] || '-'}</td>
+                    <td>${DateUtils.formatDate(firstAppointment)}</td>
+                    <td>${DateUtils.formatDate(renewalStart)}</td>
+                    <td>${DateUtils.formatDate(endDate)}</td>
+                    <td>${teacher['재직구분'] || '-'}</td>
+                `;
+                tbody.appendChild(row);
+            });
+
+            if (filteredData.length > 100) {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td colspan="7" class="text-center p-3 text-muted">
+                        ${filteredData.length}명 중 상위 100명만 표시됩니다
+                    </td>
+                `;
+                tbody.appendChild(row);
+            }
+        }
+
+        // 검색 필터
+        function filterTable() {
+            const searchTerm = document.getElementById('searchBox').value.toLowerCase();
+
+            filteredData = facultyData.filter(teacher => {
+                const name = (teacher['성명'] || '').toLowerCase();
+                const department = (teacher['소속'] || '').toLowerCase();
+                const rank = (teacher['직급'] || '').toLowerCase();
+
+                return name.includes(searchTerm) ||
+                       department.includes(searchTerm) ||
+                       rank.includes(searchTerm);
+            });
+
+            updateTable();
+        }
+
+        // 데이터 초기화
+        function clearData() {
+            if (!confirm('저장된 모든 데이터를 삭제하시겠습니까?\n이 작업은 되돌릴 수 없습니다.')) {
+                return;
+            }
+
+            facultyData = [];
+            filteredData = [];
+            StorageUtils.remove('facultyData');
+
+            document.getElementById('fileInfo').classList.remove('show');
+            document.getElementById('statsSection').style.display = 'none';
+            document.getElementById('actionCard').style.display = 'none';
+            document.getElementById('dataPreview').style.display = 'none';
+            document.getElementById('fileInput').value = '';
+
+            alert('데이터가 초기화되었습니다.');
+        }
+
+        // 데이터 내보내기 (준비 중)
+        function exportData() {
+            alert('데이터 내보내기 기능은 준비 중입니다.');
+        }
+
+        // 드래그 앤 드롭
+        const uploadSection = document.getElementById('uploadSection');
+
+        uploadSection.addEventListener('click', function(e) {
+            if (e.target === uploadSection || e.target.closest('.upload-icon, .upload-title, .upload-description')) {
+                document.getElementById('fileInput').click();
+            }
+        });
+
+        uploadSection.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadSection.classList.add('drag-over');
+        });
+
+        uploadSection.addEventListener('dragleave', (e) => {
+            e.preventDefault();
+            uploadSection.classList.remove('drag-over');
+        });
+
+        uploadSection.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadSection.classList.remove('drag-over');
+
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                const event = { target: { files: [files[0]] } };
+                loadExcelFile(event);
+            }
+        });
+    </script>
+</body>
+</html>

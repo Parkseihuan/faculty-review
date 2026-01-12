@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>프로세스 & 규정 - 교원 인사 관리 시스템</title>
+    <link rel="stylesheet" href="css/common.css">
+    <link rel="stylesheet" href="css/navigation.css">
+    <style>
+        body {
+            padding-top: 60px;
+        }
+
+        .page-header {
+            background: var(--bg-primary);
+            border-bottom: 1px solid var(--border-color);
+            padding: var(--spacing-xl) 0;
+            margin-bottom: var(--spacing-xl);
+        }
+
+        .page-title {
+            font-size: var(--font-size-3xl);
+            font-weight: 600;
+            margin-bottom: var(--spacing-sm);
+        }
+
+        .category-section {
+            margin-bottom: var(--spacing-xl);
+        }
+
+        .category-title {
+            font-size: var(--font-size-2xl);
+            font-weight: 600;
+            margin-bottom: var(--spacing-lg);
+            padding-bottom: var(--spacing-sm);
+            border-bottom: 2px solid var(--color-primary);
+        }
+
+        .items-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: var(--spacing-md);
+        }
+
+        .item-card {
+            background: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: var(--spacing-lg);
+            transition: all 0.2s ease;
+            cursor: pointer;
+            text-decoration: none;
+            color: inherit;
+            display: block;
+        }
+
+        .item-card:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-md);
+            border-color: var(--color-primary);
+        }
+
+        .item-card.disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .item-card.disabled:hover {
+            transform: none;
+            box-shadow: none;
+            border-color: var(--border-color);
+        }
+
+        .item-icon {
+            font-size: 2rem;
+            margin-bottom: var(--spacing-md);
+        }
+
+        .item-title {
+            font-size: var(--font-size-xl);
+            font-weight: 600;
+            margin-bottom: var(--spacing-sm);
+            color: var(--text-primary);
+        }
+
+        .item-description {
+            font-size: var(--font-size-sm);
+            color: var(--text-secondary);
+            margin-bottom: var(--spacing-md);
+            line-height: 1.6;
+        }
+
+        .item-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            background: var(--color-success);
+            color: white;
+            border-radius: var(--radius-sm);
+            font-size: var(--font-size-sm);
+            font-weight: 500;
+        }
+
+        .item-badge.coming-soon {
+            background: var(--color-warning);
+            color: var(--text-primary);
+        }
+
+        .info-box {
+            background: var(--bg-secondary);
+            border-left: 4px solid var(--color-info);
+            padding: var(--spacing-lg);
+            border-radius: var(--radius-md);
+            margin-top: var(--spacing-xl);
+        }
+
+        .info-box h3 {
+            font-size: var(--font-size-lg);
+            font-weight: 600;
+            margin-bottom: var(--spacing-sm);
+            color: var(--text-primary);
+        }
+
+        .info-box ul {
+            margin: 0;
+            padding-left: var(--spacing-lg);
+            line-height: 1.8;
+        }
+    </style>
+</head>
+<body>
+    <!-- 네비게이션 바 -->
+    <nav class="navbar">
+        <div class="navbar-container">
+            <a href="index.html" class="navbar-brand">교원 인사 관리 시스템</a>
+            <button class="navbar-toggle" aria-label="메뉴 토글">
+                <span class="navbar-toggle-icon"></span>
+            </button>
+            <ul class="navbar-menu">
+                <li class="navbar-item">
+                    <a href="index.html" class="navbar-link" data-page="dashboard">대시보드</a>
+                </li>
+                <li class="navbar-item">
+                    <a href="promotion.html" class="navbar-link" data-page="promotion">승진</a>
+                </li>
+                <li class="navbar-item">
+                    <a href="reappointment.html" class="navbar-link" data-page="reappointment">재임용</a>
+                </li>
+                <li class="navbar-item">
+                    <a href="data-management.html" class="navbar-link" data-page="data">데이터 관리</a>
+                </li>
+                <li class="navbar-item">
+                    <a href="process.html" class="navbar-link" data-page="process">프로세스 & 규정</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- 페이지 헤더 -->
+    <div class="page-header">
+        <div class="container">
+            <h1 class="page-title">프로세스 & 규정</h1>
+            <p class="section-subtitle">교원 인사 관련 프로세스 및 규정 문서</p>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- 프로세스 섹션 -->
+        <div class="category-section">
+            <h2 class="category-title">📋 업무 프로세스</h2>
+            <div class="items-grid">
+                <a href="promotion-process.html" class="item-card">
+                    <div class="item-icon">📊</div>
+                    <h3 class="item-title">승진 프로세스</h3>
+                    <p class="item-description">
+                        교원인사규정 제3장에 따른 승진 절차 및 요건<br>
+                        승진 소요 연한, 승진 시기, 심사 절차 등
+                    </p>
+                    <span class="item-badge">이용 가능</span>
+                </a>
+
+                <div class="item-card disabled">
+                    <div class="item-icon">🔄</div>
+                    <h3 class="item-title">재임용 프로세스</h3>
+                    <p class="item-description">
+                        비정년트랙 교원 재임용 심사 절차 및 기준<br>
+                        재임용 시기, 심사 기준, 서류 제출 절차 등
+                    </p>
+                    <span class="item-badge coming-soon">준비 중</span>
+                </div>
+
+                <div class="item-card disabled">
+                    <div class="item-icon">⭐</div>
+                    <h3 class="item-title">평가 프로세스</h3>
+                    <p class="item-description">
+                        교원 업적 평가 및 심사 기준<br>
+                        교육, 연구, 봉사 활동 평가 기준 및 절차
+                    </p>
+                    <span class="item-badge coming-soon">준비 중</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 규정 문서 섹션 -->
+        <div class="category-section">
+            <h2 class="category-title">📘 규정 문서</h2>
+            <div class="items-grid">
+                <a href="https://github.com/Parkseihuan/faculty-review/blob/main/%EA%B5%90%EC%9B%90%EC%9D%B8%EC%82%AC%EA%B7%9C%EC%A0%95.md" target="_blank" class="item-card">
+                    <div class="item-icon">📄</div>
+                    <h3 class="item-title">교원인사규정</h3>
+                    <p class="item-description">
+                        교원 인사 관련 전반적인 규정<br>
+                        임용, 승진, 재임용, 휴직 등 제반 사항
+                    </p>
+                    <span class="item-badge">GitHub에서 보기</span>
+                </a>
+
+                <div class="item-card disabled">
+                    <div class="item-icon">📗</div>
+                    <h3 class="item-title">교원 평가 규정</h3>
+                    <p class="item-description">
+                        교원 업적 평가 관련 규정<br>
+                        평가 항목, 배점, 심사 기준 등
+                    </p>
+                    <span class="item-badge coming-soon">준비 중</span>
+                </div>
+
+                <div class="item-card disabled">
+                    <div class="item-icon">📕</div>
+                    <h3 class="item-title">기타 인사 규정</h3>
+                    <p class="item-description">
+                        연구비, 장기연수, 겸직 등<br>
+                        교원 인사 관련 세부 규정
+                    </p>
+                    <span class="item-badge coming-soon">준비 중</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 서식 및 양식 섹션 -->
+        <div class="category-section">
+            <h2 class="category-title">📝 서식 및 양식</h2>
+            <div class="items-grid">
+                <div class="item-card disabled">
+                    <div class="item-icon">📋</div>
+                    <h3 class="item-title">승진 심사 서류</h3>
+                    <p class="item-description">
+                        승진 심사에 필요한 각종 서식<br>
+                        신청서, 업적평가서, 자기소개서 등
+                    </p>
+                    <span class="item-badge coming-soon">준비 중</span>
+                </div>
+
+                <div class="item-card disabled">
+                    <div class="item-icon">📑</div>
+                    <h3 class="item-title">재임용 심사 서류</h3>
+                    <p class="item-description">
+                        재임용 심사에 필요한 각종 서식<br>
+                        신청서, 업적평가서, 계획서 등
+                    </p>
+                    <span class="item-badge coming-soon">준비 중</span>
+                </div>
+
+                <div class="item-card disabled">
+                    <div class="item-icon">📄</div>
+                    <h3 class="item-title">기타 서식</h3>
+                    <p class="item-description">
+                        휴직, 복직, 겸직 등<br>
+                        각종 인사 관련 신청 서식
+                    </p>
+                    <span class="item-badge coming-soon">준비 중</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 안내 정보 -->
+        <div class="info-box">
+            <h3>💡 참고 사항</h3>
+            <ul>
+                <li>승진 프로세스 페이지에서 교원인사규정 제3장(승진) 관련 내용을 확인할 수 있습니다.</li>
+                <li>교원인사규정 전문은 GitHub 저장소에서 확인하실 수 있습니다.</li>
+                <li>재임용, 평가 등 기타 프로세스 페이지는 순차적으로 추가될 예정입니다.</li>
+                <li>규정 파일 업로드 및 버전 관리 기능은 추후 개발될 예정입니다.</li>
+                <li>각종 서식 및 양식 다운로드 기능도 함께 개발될 계획입니다.</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- JavaScript -->
+    <script src="js/navigation.js"></script>
+</body>
+</html>

@@ -13,53 +13,22 @@
             padding-bottom: 40px;
         }
 
-        .hero-section {
-            background: linear-gradient(135deg, var(--color-primary) 0%, #667eea 100%);
-            color: white;
+        .page-header {
+            background: var(--bg-primary);
+            border-bottom: 1px solid var(--border-color);
             padding: var(--spacing-xl) 0;
-            margin-bottom: var(--spacing-xl);
-            border-radius: var(--radius-lg);
-        }
-
-        .hero-content {
-            text-align: center;
-            max-width: 800px;
-            margin: 0 auto;
-        }
-
-        .hero-title {
-            font-size: var(--font-size-3xl);
-            font-weight: 700;
-            margin-bottom: var(--spacing-md);
-        }
-
-        .hero-subtitle {
-            font-size: var(--font-size-lg);
-            opacity: 0.9;
             margin-bottom: var(--spacing-lg);
         }
 
-        .quick-actions {
-            display: flex;
-            gap: var(--spacing-md);
-            justify-content: center;
-            flex-wrap: wrap;
-        }
-
-        .quick-action-btn {
-            background: white;
-            color: var(--color-primary);
-            padding: var(--spacing-md) var(--spacing-lg);
-            border-radius: var(--radius-md);
-            text-decoration: none;
+        .page-title {
+            font-size: var(--font-size-3xl);
             font-weight: 600;
-            transition: all 0.2s ease;
-            box-shadow: var(--shadow-md);
+            margin-bottom: var(--spacing-xs);
         }
 
-        .quick-action-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: var(--shadow-lg);
+        .page-description {
+            font-size: var(--font-size-base);
+            color: var(--text-secondary);
         }
 
         .stats-grid {
@@ -95,24 +64,16 @@
             color: var(--text-secondary);
         }
 
-        .upload-section {
-            background: var(--bg-primary);
-            border: 2px dashed var(--border-color);
-            border-radius: var(--radius-md);
-            padding: var(--spacing-xl);
-            text-align: center;
-            margin-bottom: var(--spacing-lg);
-            cursor: pointer;
-            transition: all 0.2s ease;
+        .date-control {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-md);
+            flex-wrap: wrap;
         }
 
-        .upload-section:hover {
-            border-color: var(--color-primary);
-            background: var(--bg-secondary);
-        }
-
-        .upload-section input {
-            display: none;
+        .date-control .form-control {
+            font-family: var(--font-family);
+            font-size: var(--font-size-base);
         }
 
         .alert-section {
@@ -198,29 +159,27 @@
                     <a href="reappointment.html" class="navbar-link" data-page="reappointment">재임용</a>
                 </li>
                 <li class="navbar-item">
-                    <a href="regulations.html" class="navbar-link" data-page="regulations">규정 관리</a>
+                    <a href="data-management.html" class="navbar-link" data-page="data">데이터 관리</a>
+                </li>
+                <li class="navbar-item">
+                    <a href="process.html" class="navbar-link" data-page="process">프로세스 & 규정</a>
                 </li>
             </ul>
         </div>
     </nav>
 
-    <div class="container">
-        <!-- 히어로 섹션 -->
-        <div class="hero-section">
-            <div class="hero-content">
-                <h1 class="hero-title">교원 인사 관리 시스템</h1>
-                <p class="hero-subtitle">승진 및 재임용 업무의 체계적 관리</p>
-                <div class="quick-actions">
-                    <a href="promotion.html" class="quick-action-btn">📊 승진 관리</a>
-                    <a href="promotion-process.html" class="quick-action-btn">📋 승진 프로세스</a>
-                    <a href="#upload" class="quick-action-btn">📁 데이터 업로드</a>
-                </div>
-            </div>
+    <!-- 페이지 헤더 -->
+    <div class="page-header">
+        <div class="container">
+            <h1 class="page-title">대시보드</h1>
+            <p class="page-description">교원 인사 관리 현황을 한눈에 확인하세요</p>
         </div>
+    </div>
 
+    <div class="container">
         <!-- 기준 날짜 -->
         <div class="card">
-            <div class="d-flex align-items-center gap-3 flex-wrap">
+            <div class="date-control">
                 <label for="baseDate" class="form-label mb-0"><strong>기준 날짜:</strong></label>
                 <input type="date" id="baseDate" class="form-control" style="width: 180px;" onchange="onBaseDateChange()">
                 <button class="btn btn-secondary btn-sm" onclick="setToday()">오늘</button>
@@ -245,15 +204,6 @@
             <div class="stat-card">
                 <div class="stat-number" id="urgentCases">-</div>
                 <div class="stat-label">긴급 처리 필요</div>
-            </div>
-        </div>
-
-        <!-- 엑셀 업로드 -->
-        <div id="upload" class="upload-section" onclick="document.getElementById('fileInput').click()">
-            <input type="file" id="fileInput" accept=".xlsx,.xls" onchange="loadExcelFile(event)">
-            <div style="font-size: var(--font-size-xl); margin-bottom: var(--spacing-sm);">📊 교원현황 엑셀 파일 업로드</div>
-            <div style="font-size: var(--font-size-sm); color: var(--text-secondary);">
-                클릭하거나 파일을 드래그하여 업로드하세요
             </div>
         </div>
 
@@ -730,30 +680,6 @@
 
             updateFacultyTable();
         }
-
-        // 드래그 앤 드롭
-        const uploadSection = document.querySelector('.upload-section');
-
-        uploadSection.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            uploadSection.style.borderColor = 'var(--color-primary)';
-        });
-
-        uploadSection.addEventListener('dragleave', (e) => {
-            e.preventDefault();
-            uploadSection.style.borderColor = 'var(--border-color)';
-        });
-
-        uploadSection.addEventListener('drop', (e) => {
-            e.preventDefault();
-            uploadSection.style.borderColor = 'var(--border-color)';
-
-            const files = e.dataTransfer.files;
-            if (files.length > 0) {
-                const event = { target: { files: [files[0]] } };
-                loadExcelFile(event);
-            }
-        });
 
         // 페이지 로드 시 저장된 데이터 복원
         window.addEventListener('load', () => {
