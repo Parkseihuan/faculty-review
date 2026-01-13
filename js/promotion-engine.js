@@ -12,7 +12,7 @@ class PromotionEngine {
             // 2012.3.1 이후 신규임용 정년트랙
             'after_2012': {
                 '조교수': { nextRank: '부교수', years: 6 },
-                '부교수': { nextRank: '교수', years: 7 }
+                '부교수': { nextRank: '교수', years: 8 }  // 실제 운용: 8년
             },
             // 2012.2.28 이전 신규임용 정년트랙
             'before_2012': {
@@ -24,6 +24,9 @@ class PromotionEngine {
                 '조교수': { nextRank: '부교수', years: 6 }
             }
         };
+
+        // 예외 사항 저장소 (로컬 스토리지)
+        this.EXCEPTIONS_KEY = 'promotionExceptions';
 
         // 2012.3.1 기준일
         this.CUTOFF_DATE = new Date(2012, 2, 1); // 2012년 3월 1일
@@ -191,6 +194,48 @@ class PromotionEngine {
     }
 
     /**
+     * 예외 사항 불러오기
+     */
+    getExceptions() {
+        const stored = localStorage.getItem(this.EXCEPTIONS_KEY);
+        return stored ? JSON.parse(stored) : [];
+    }
+
+    /**
+     * 예외 사항 저장
+     */
+    saveExceptions(exceptions) {
+        localStorage.setItem(this.EXCEPTIONS_KEY, JSON.stringify(exceptions));
+    }
+
+    /**
+     * 특정 교원이 예외 사항에 해당하는지 확인
+     */
+    checkException(teacher) {
+        const exceptions = this.getExceptions();
+        const teacherName = teacher['성명'];
+        const department = teacher['소속'];
+
+        // 이름과 소속이 일치하는 예외 사항 찾기
+        const exception = exceptions.find(ex =>
+            ex.name === teacherName &&
+            (!ex.department || ex.department === department) &&
+            ex.isActive
+        );
+
+        if (exception) {
+            return {
+                hasException: true,
+                type: exception.type,
+                reason: exception.reason,
+                note: exception.note
+            };
+        }
+
+        return { hasException: false };
+    }
+
+    /**
      * 승진 제한 사유 확인
      * 교원인사규정 제15조의2
      */
@@ -207,6 +252,13 @@ class PromotionEngine {
      * 승진 대상자 여부 판정
      */
     isPromotionCandidate(teacher) {
+        // 0. 예외 사항 확인 (최우선)
+        const exception = this.checkException(teacher);
+        if (exception.hasException) {
+            console.log('❌ 예외 사항:', teacher['성명'], exception.type, exception.reason);
+            return false;
+        }
+
         // 1. 직급 확인 (교수는 제외)
         const rank = teacher['직급'];
 
