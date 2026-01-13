@@ -27,9 +27,118 @@ class PromotionEngine {
 
         // 예외 사항 저장소 (로컬 스토리지)
         this.EXCEPTIONS_KEY = 'promotionExceptions';
+        this.APPOINTMENT_DATA_KEY = 'appointmentData';
 
         // 2012.3.1 기준일
         this.CUTOFF_DATE = new Date(2012, 2, 1); // 2012년 3월 1일
+    }
+
+    /**
+     * 교원의 발령사항 데이터 조회
+     */
+    getAppointmentHistory(teacher) {
+        const appointmentData = JSON.parse(localStorage.getItem(this.APPOINTMENT_DATA_KEY) || '{}');
+        const name = teacher['성명'];
+        const department = teacher['소속'];
+        const key = `${name}_${department}`;
+
+        return appointmentData[key] || null;
+    }
+
+    /**
+     * 휴직 기간 계산 (개월 수)
+     * 교원인사규정 제15조 - 휴직 기간은 승진 소요 연한에서 제외
+     */
+    calculateLeaveMonths(teacher) {
+        const appointmentHistory = this.getAppointmentHistory(teacher);
+
+        if (!appointmentHistory || !appointmentHistory.appointments) {
+            return 0;
+        }
+
+        let totalLeaveMonths = 0;
+
+        appointmentHistory.appointments.forEach(record => {
+            const appointmentType = (record['발령구분'] || '').toString().toLowerCase();
+
+            // 휴직 관련 발령 확인
+            if (appointmentType.includes('휴직')) {
+                // 휴직 기간(년), 휴직 기간(월) 필드 확인
+                const leaveYears = parseFloat(record['휴직기간(년)']) || 0;
+                const leaveMonths = parseFloat(record['휴직기간(월)']) || 0;
+
+                totalLeaveMonths += (leaveYears * 12) + leaveMonths;
+
+                // 휴직 시작일/종료일로 계산 (위 필드가 없는 경우)
+                if (totalLeaveMonths === 0) {
+                    const startDate = this.parseDate(record['휴직시작일']);
+                    const endDate = this.parseDate(record['휴직종료일']);
+
+                    if (startDate && endDate) {
+                        const months = this.getMonthsDifference(startDate, endDate);
+                        totalLeaveMonths += months;
+                    } else {
+                        // 발령시작일/종료일로 계산
+                        const apptStart = this.parseDate(record['발령시작일']);
+                        const apptEnd = this.parseDate(record['발령종료일']);
+
+                        if (apptStart && apptEnd) {
+                            const months = this.getMonthsDifference(apptStart, apptEnd);
+                            totalLeaveMonths += months;
+                        }
+                    }
+                }
+            }
+        });
+
+        console.log('휴직 기간 계산:', teacher['성명'], totalLeaveMonths, '개월');
+        return totalLeaveMonths;
+    }
+
+    /**
+     * 두 날짜 사이의 개월 수 계산
+     */
+    getMonthsDifference(startDate, endDate) {
+        const yearDiff = endDate.getFullYear() - startDate.getFullYear();
+        const monthDiff = endDate.getMonth() - startDate.getMonth();
+        const dayDiff = endDate.getDate() - startDate.getDate();
+
+        let totalMonths = yearDiff * 12 + monthDiff;
+
+        // 일 단위까지 고려 (말일까지 포함)
+        if (dayDiff >= 0) {
+            totalMonths += 1;
+        }
+
+        return totalMonths;
+    }
+
+    /**
+     * 날짜 파싱 (여러 형식 지원)
+     */
+    parseDate(dateStr) {
+        if (!dateStr) return null;
+
+        const str = dateStr.toString().trim();
+
+        // YYYY.MM.DD 형식
+        if (str.match(/^\d{4}\.\d{1,2}\.\d{1,2}$/)) {
+            const parts = str.split('.');
+            return new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
+        }
+
+        // YYYY-MM-DD 형식
+        if (str.match(/^\d{4}-\d{1,2}-\d{1,2}$/)) {
+            const parts = str.split('-');
+            return new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
+        }
+
+        // Excel 날짜 (숫자)
+        if (typeof dateStr === 'number') {
+            return new Date((dateStr - 25569) * 86400 * 1000);
+        }
+
+        return null;
     }
 
     /**
@@ -128,9 +237,17 @@ class PromotionEngine {
 
         if (!baseDate) return null;
 
-        // 승진 자격일 계산
+        // 휴직 기간 계산 (개월 단위)
+        const leaveMonths = this.calculateLeaveMonths(teacher);
+
+        // 승진 자격일 계산 (기준일 + 소요 연한 + 휴직 기간)
         const eligibleDate = new Date(baseDate);
         eligibleDate.setFullYear(eligibleDate.getFullYear() + requirement.years);
+        eligibleDate.setMonth(eligibleDate.getMonth() + leaveMonths);
+
+        if (leaveMonths > 0) {
+            console.log('✓ 휴직 기간 반영:', teacher['성명'], leaveMonths, '개월 →', DateUtils.formatDate(eligibleDate));
+        }
 
         return eligibleDate;
     }

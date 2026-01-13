@@ -641,6 +641,9 @@
                     console.log('발령사항 데이터:', appointmentData.length, '건');
                     console.log('샘플 데이터:', appointmentData[0]);
 
+                    // 발령사항 데이터 저장 (교원별로 인덱싱)
+                    saveAppointmentData(appointmentData);
+
                     // 예외 사항 자동 생성
                     analyzeAndCreateExceptions(appointmentData);
 
@@ -651,6 +654,37 @@
             };
 
             reader.readAsArrayBuffer(file);
+        }
+
+        // 발령사항 데이터 저장 (교원별 인덱싱)
+        function saveAppointmentData(appointmentData) {
+            // 교원별로 발령사항 그룹화
+            const appointmentByTeacher = {};
+
+            appointmentData.forEach(record => {
+                const name = record['성명'];
+                const department = record['소속'] || record['부서'] || record['학과'];
+
+                if (!name) return;
+
+                const key = `${name}_${department}`;
+
+                if (!appointmentByTeacher[key]) {
+                    appointmentByTeacher[key] = {
+                        name: name,
+                        department: department,
+                        appointments: []
+                    };
+                }
+
+                appointmentByTeacher[key].appointments.push(record);
+            });
+
+            // localStorage에 저장
+            StorageUtils.set('appointmentData', appointmentByTeacher);
+            StorageUtils.set('appointmentDataUpdated', new Date().toISOString());
+
+            console.log('발령사항 데이터 저장 완료:', Object.keys(appointmentByTeacher).length, '명');
         }
 
         // 발령사항 분석 및 예외 사항 자동 생성
