@@ -245,6 +245,221 @@
         .tab-content.active {
             display: block;
         }
+
+        /* 교원 상세 모달 */
+        .teacher-modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            overflow-y: auto;
+        }
+
+        .teacher-modal.active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background: var(--bg-primary);
+            margin: var(--spacing-lg);
+            padding: 0;
+            border-radius: var(--radius-lg);
+            max-width: 900px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: var(--shadow-lg);
+        }
+
+        .modal-header {
+            padding: var(--spacing-lg) var(--spacing-xl);
+            border-bottom: 2px solid var(--border-color);
+            background: linear-gradient(135deg, var(--color-primary) 0%, #667eea 100%);
+            color: white;
+            border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .modal-header h2 {
+            margin: 0;
+            font-size: var(--font-size-2xl);
+            font-weight: 600;
+        }
+
+        .modal-close {
+            position: absolute;
+            right: var(--spacing-lg);
+            top: var(--spacing-lg);
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            font-size: 28px;
+            font-weight: 300;
+            color: white;
+            cursor: pointer;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+        }
+
+        .modal-close:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .modal-body {
+            padding: var(--spacing-xl);
+        }
+
+        .info-section {
+            margin-bottom: var(--spacing-xl);
+        }
+
+        .info-section-title {
+            font-size: var(--font-size-lg);
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: var(--spacing-md);
+            padding-bottom: var(--spacing-sm);
+            border-bottom: 2px solid var(--color-primary);
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: var(--spacing-md);
+            margin-bottom: var(--spacing-lg);
+        }
+
+        .info-item {
+            padding: var(--spacing-sm);
+        }
+
+        .info-label {
+            font-size: var(--font-size-sm);
+            color: var(--text-secondary);
+            margin-bottom: var(--spacing-xs);
+        }
+
+        .info-value {
+            font-size: var(--font-size-md);
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .timeline {
+            position: relative;
+            padding-left: var(--spacing-lg);
+        }
+
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: var(--border-color);
+        }
+
+        .timeline-item {
+            position: relative;
+            padding-bottom: var(--spacing-lg);
+            padding-left: var(--spacing-lg);
+        }
+
+        .timeline-item:last-child {
+            padding-bottom: 0;
+        }
+
+        .timeline-dot {
+            position: absolute;
+            left: -5px;
+            top: 6px;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: var(--color-primary);
+            border: 2px solid var(--bg-primary);
+        }
+
+        .timeline-dot.leave {
+            background: var(--color-warning);
+        }
+
+        .timeline-dot.reappointment {
+            background: var(--color-info);
+        }
+
+        .timeline-content {
+            background: var(--bg-secondary);
+            padding: var(--spacing-md);
+            border-radius: var(--radius-md);
+            border-left: 3px solid var(--color-primary);
+        }
+
+        .timeline-content.leave {
+            border-left-color: var(--color-warning);
+        }
+
+        .timeline-content.reappointment {
+            border-left-color: var(--color-info);
+        }
+
+        .timeline-date {
+            font-size: var(--font-size-sm);
+            font-weight: 600;
+            color: var(--color-primary);
+            margin-bottom: var(--spacing-xs);
+        }
+
+        .timeline-title {
+            font-size: var(--font-size-md);
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: var(--spacing-xs);
+        }
+
+        .timeline-description {
+            font-size: var(--font-size-sm);
+            color: var(--text-secondary);
+            margin: 0;
+        }
+
+        .summary-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: var(--radius-sm);
+            font-size: var(--font-size-sm);
+            font-weight: 600;
+            margin-right: var(--spacing-sm);
+            margin-bottom: var(--spacing-xs);
+        }
+
+        .summary-badge.primary {
+            background: var(--color-primary);
+            color: white;
+        }
+
+        .summary-badge.warning {
+            background: var(--color-warning);
+            color: var(--text-primary);
+        }
+
+        .summary-badge.info {
+            background: var(--color-info);
+            color: white;
+        }
     </style>
 </head>
 <body>
@@ -557,13 +772,32 @@
             const firstAppointmentField = promotionEngine.getTeacherValue(teacher, '전임교원\n최초임용일');
             const firstAppointmentDate = DateUtils.parseDate(firstAppointmentField);
 
+            // 휴직 기간 계산
+            const leaveMonths = promotionEngine.calculateLeaveMonths(teacher);
+            const leaveYears = Math.floor(leaveMonths / 12);
+            const remainingMonths = leaveMonths % 12;
+            let leaveDisplay = '-';
+            if (leaveMonths > 0) {
+                if (leaveYears > 0 && remainingMonths > 0) {
+                    leaveDisplay = `${leaveYears}년 ${remainingMonths}개월`;
+                } else if (leaveYears > 0) {
+                    leaveDisplay = `${leaveYears}년`;
+                } else {
+                    leaveDisplay = `${remainingMonths}개월`;
+                }
+            }
+
+            // 교원 ID 생성 (모달용)
+            const teacherId = `${teacher['성명']}_${teacher['소속']}`.replace(/\s/g, '_');
+
             return `
                 <tr>
-                    <td>${teacher['성명'] || '-'}</td>
+                    <td><a href="#" onclick="showTeacherDetail('${teacherId}'); return false;" style="color: var(--color-primary); text-decoration: none; font-weight: 500;">${teacher['성명'] || '-'}</a></td>
                     <td>${teacher['소속'] || '-'}</td>
                     <td>${info.currentRank || '-'}</td>
                     <td>${DateUtils.formatDate(firstAppointmentDate)}</td>
                     <td>${info.yearsInRank ? info.yearsInRank + '년' : '-'}</td>
+                    <td style="color: ${leaveMonths > 0 ? 'var(--color-warning)' : 'inherit'}; font-weight: ${leaveMonths > 0 ? '600' : 'normal'};">${leaveDisplay}</td>
                     <td>${DateUtils.formatDate(info.nextPromotionDate)}</td>
                     <td>${DateUtils.formatDate(info.submissionDeadline)}</td>
                     <td>${info.daysUntilDeadline !== null ? 'D-' + info.daysUntilDeadline : '-'}</td>
@@ -588,6 +822,7 @@
                         <th>현직급</th>
                         <th>임용일</th>
                         <th>재직기간</th>
+                        <th>휴직기간</th>
                         <th>승진예정일</th>
                         <th>서류마감</th>
                         <th>D-Day</th>
@@ -923,6 +1158,248 @@
                 calculatePromotions();
             }
         }
+
+        // 교원 상세 정보 모달 표시
+        function showTeacherDetail(teacherId) {
+            // teacherId 형식: "이름_학과" (공백 제거됨)
+            const idParts = teacherId.split('_');
+            const name = idParts.slice(0, -1).join('_');
+            const department = idParts[idParts.length - 1];
+
+            // 교원 데이터 찾기
+            const teacher = facultyData.find(t =>
+                t['성명'] === name && t['소속'] === department
+            );
+
+            if (!teacher) {
+                alert('교원 정보를 찾을 수 없습니다.');
+                return;
+            }
+
+            // 발령사항 데이터 가져오기
+            const appointmentHistory = promotionEngine.getAppointmentHistory(teacher);
+
+            // 모달 내용 구성
+            const modalBody = document.getElementById('teacherModalBody');
+            let html = '';
+
+            // 기본 정보
+            html += '<div class="info-section">';
+            html += '<h3 class="info-section-title">📋 기본 정보</h3>';
+            html += '<div class="info-grid">';
+            html += `
+                <div class="info-item">
+                    <div class="info-label">성명</div>
+                    <div class="info-value">${teacher['성명'] || '-'}</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">소속</div>
+                    <div class="info-value">${teacher['소속'] || '-'}</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">현재 직급</div>
+                    <div class="info-value">${teacher['직급'] || '-'}</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">트랙</div>
+                    <div class="info-value">${teacher['트랙'] || '-'}</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">임용일</div>
+                    <div class="info-value">${teacher['임용일'] || '-'}</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">계약종료일</div>
+                    <div class="info-value">${teacher['계약종료일'] || '-'}</div>
+                </div>
+            `;
+            html += '</div>';
+
+            // 승진 관련 정보
+            const info = promotionEngine.getPromotionInfo(teacher);
+            const leaveMonths = promotionEngine.calculateLeaveMonths(teacher);
+            const leaveYears = Math.floor(leaveMonths / 12);
+            const remainingMonths = leaveMonths % 12;
+            let leaveDisplay = '-';
+            if (leaveMonths > 0) {
+                if (leaveYears > 0 && remainingMonths > 0) {
+                    leaveDisplay = `${leaveYears}년 ${remainingMonths}개월`;
+                } else if (leaveYears > 0) {
+                    leaveDisplay = `${leaveYears}년`;
+                } else {
+                    leaveDisplay = `${remainingMonths}개월`;
+                }
+            }
+
+            html += '<div style="margin-top: var(--spacing-md);">';
+            if (info.yearsInRank) {
+                html += `<span class="summary-badge primary">재직기간: ${info.yearsInRank}년</span>`;
+            }
+            if (leaveMonths > 0) {
+                html += `<span class="summary-badge warning">휴직기간: ${leaveDisplay}</span>`;
+            }
+            if (info.nextPromotionDate) {
+                html += `<span class="summary-badge info">승진예정일: ${DateUtils.formatDate(info.nextPromotionDate)}</span>`;
+            }
+            html += '</div>';
+            html += '</div>';
+
+            // 발령사항 타임라인
+            if (appointmentHistory && appointmentHistory.appointments && appointmentHistory.appointments.length > 0) {
+                html += '<div class="info-section">';
+                html += '<h3 class="info-section-title">📅 발령사항 이력</h3>';
+                html += '<div class="timeline">';
+
+                // 발령사항을 날짜순으로 정렬
+                const sortedAppointments = [...appointmentHistory.appointments].sort((a, b) => {
+                    const dateA = promotionEngine.parseDate(a['발령일'] || a['발령일자'] || a['발령시작일']) || new Date(0);
+                    const dateB = promotionEngine.parseDate(b['발령일'] || b['발령일자'] || b['발령시작일']) || new Date(0);
+                    return dateA - dateB;
+                });
+
+                sortedAppointments.forEach(record => {
+                    const appointmentType = (record['발령구분'] || record['발령사유'] || '').toString();
+                    const appointmentDate = record['발령일'] || record['발령일자'] || record['발령시작일'];
+                    const endDate = record['발령종료일'];
+
+                    let cssClass = '';
+                    let icon = '📋';
+
+                    // 휴직 관련
+                    if (appointmentType.includes('휴직')) {
+                        cssClass = 'leave';
+                        icon = '⏸️';
+                    }
+                    // 재임용 관련
+                    else if (appointmentType.includes('재임용') || appointmentType.includes('재계약')) {
+                        cssClass = 'reappointment';
+                        icon = '🔄';
+                    }
+                    // 임용 관련
+                    else if (appointmentType.includes('임용')) {
+                        icon = '✅';
+                    }
+
+                    html += `<div class="timeline-item">`;
+                    html += `<div class="timeline-dot ${cssClass}"></div>`;
+                    html += `<div class="timeline-content ${cssClass}">`;
+                    html += `<div class="timeline-date">${icon} ${appointmentDate ? DateUtils.formatDate(promotionEngine.parseDate(appointmentDate)) : '-'}</div>`;
+                    html += `<div class="timeline-title">${appointmentType}</div>`;
+
+                    // 상세 정보 추가
+                    let description = [];
+
+                    if (endDate) {
+                        description.push(`종료일: ${DateUtils.formatDate(promotionEngine.parseDate(endDate))}`);
+                    }
+
+                    // 휴직 기간 정보
+                    if (appointmentType.includes('휴직')) {
+                        const leaveYears = parseFloat(record['휴직기간(년)']) || 0;
+                        const leaveMonths = parseFloat(record['휴직기간(월)']) || 0;
+                        if (leaveYears > 0 || leaveMonths > 0) {
+                            let leavePeriod = '';
+                            if (leaveYears > 0) leavePeriod += `${leaveYears}년 `;
+                            if (leaveMonths > 0) leavePeriod += `${leaveMonths}개월`;
+                            description.push(`기간: ${leavePeriod.trim()}`);
+                        }
+                    }
+
+                    // 계약 기간 정보
+                    if (record['계약기간(년)']) {
+                        description.push(`계약: ${record['계약기간(년)']}년`);
+                    }
+
+                    if (description.length > 0) {
+                        html += `<p class="timeline-description">${description.join(' | ')}</p>`;
+                    }
+
+                    html += `</div></div>`;
+                });
+
+                html += '</div>';
+                html += '</div>';
+            } else {
+                html += '<div class="info-section">';
+                html += '<h3 class="info-section-title">📅 발령사항 이력</h3>';
+                html += '<p style="color: var(--text-secondary);">발령사항 데이터가 없습니다.</p>';
+                html += '</div>';
+            }
+
+            // 재임용 정보 (비정년트랙인 경우)
+            if (teacher['트랙'] && teacher['트랙'].includes('비정년')) {
+                html += '<div class="info-section">';
+                html += '<h3 class="info-section-title">🔄 재임용 정보</h3>';
+
+                const contractEndDate = teacher['계약종료일'];
+                if (contractEndDate) {
+                    const endDate = promotionEngine.parseDate(contractEndDate);
+                    const today = new Date();
+                    const daysUntilEnd = Math.floor((endDate - today) / (1000 * 60 * 60 * 24));
+
+                    html += '<div class="info-grid">';
+                    html += `
+                        <div class="info-item">
+                            <div class="info-label">계약종료일</div>
+                            <div class="info-value">${DateUtils.formatDate(endDate)}</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">잔여일수</div>
+                            <div class="info-value" style="color: ${daysUntilEnd < 180 ? 'var(--color-danger)' : 'inherit'}">
+                                ${daysUntilEnd > 0 ? 'D-' + daysUntilEnd : '계약 만료'}
+                            </div>
+                        </div>
+                    `;
+                    html += '</div>';
+
+                    if (daysUntilEnd < 180 && daysUntilEnd > 0) {
+                        html += '<p style="color: var(--color-danger); margin-top: var(--spacing-md);">⚠️ 재임용 심사가 필요합니다.</p>';
+                    }
+                } else {
+                    html += '<p style="color: var(--text-secondary);">계약종료일 정보가 없습니다.</p>';
+                }
+
+                html += '</div>';
+            }
+
+            modalBody.innerHTML = html;
+
+            // 모달 타이틀 설정
+            document.getElementById('teacherModalTitle').textContent = `${teacher['성명']} (${teacher['소속']})`;
+
+            // 모달 표시
+            document.getElementById('teacherModal').classList.add('active');
+        }
+
+        // 교원 상세 모달 닫기
+        function closeTeacherModal() {
+            document.getElementById('teacherModal').classList.remove('active');
+        }
+
+        // 모달 외부 클릭 시 닫기
+        document.addEventListener('DOMContentLoaded', function() {
+            const modal = document.getElementById('teacherModal');
+            if (modal) {
+                modal.addEventListener('click', function(event) {
+                    if (event.target === modal) {
+                        closeTeacherModal();
+                    }
+                });
+            }
+        });
     </script>
+
+    <!-- 교원 상세 정보 모달 -->
+    <div id="teacherModal" class="teacher-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="teacherModalTitle">교원 상세 정보</h2>
+                <button class="modal-close" onclick="closeTeacherModal()" aria-label="닫기">&times;</button>
+            </div>
+            <div class="modal-body" id="teacherModalBody">
+                <!-- 동적으로 생성됨 -->
+            </div>
+        </div>
+    </div>
 </body>
 </html>
