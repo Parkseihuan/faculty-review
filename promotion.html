@@ -302,6 +302,55 @@
             </div>
         </div>
 
+        <!-- 예외 사항 관리 -->
+        <div class="card no-print">
+            <div class="card-header">
+                <h3 class="card-title">예외 사항 관리</h3>
+            </div>
+            <div class="card-body">
+                <p style="color: var(--text-secondary); margin-bottom: var(--spacing-md);">
+                    사직서 제출, 승진 탈락, 휴직 등의 사유로 승진 대상자에서 제외할 교원을 관리합니다.
+                </p>
+
+                <!-- 예외 추가 폼 -->
+                <div style="background: var(--bg-secondary); padding: var(--spacing-md); border-radius: var(--radius-md); margin-bottom: var(--spacing-md);">
+                    <div class="form-group">
+                        <label class="form-label">소속학과 *</label>
+                        <input type="text" id="exceptionDepartment" class="form-control" placeholder="예: 기계공학과">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">성명 *</label>
+                        <input type="text" id="exceptionName" class="form-control" placeholder="예: 홍길동">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">예외 유형 *</label>
+                        <select id="exceptionType" class="form-control">
+                            <option value="">선택하세요</option>
+                            <option value="resignation">사직서 제출</option>
+                            <option value="failed">승진 탈락</option>
+                            <option value="leave">휴직</option>
+                            <option value="discipline">징계</option>
+                            <option value="other">기타</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">사유</label>
+                        <input type="text" id="exceptionReason" class="form-control" placeholder="예: 승진임용 기간 전 사직서 제출">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">비고</label>
+                        <textarea id="exceptionNote" class="form-control" rows="2" placeholder="추가 상세 정보"></textarea>
+                    </div>
+                    <button class="btn btn-primary" onclick="addException()">예외 사항 추가</button>
+                </div>
+
+                <!-- 예외 목록 -->
+                <div id="exceptionsList">
+                    <p class="text-center text-muted p-3">등록된 예외 사항이 없습니다.</p>
+                </div>
+            </div>
+        </div>
+
         <!-- 검색 및 필터 -->
         <div class="card">
             <div class="card-header">
@@ -357,6 +406,7 @@
         // 페이지 로드 시 초기화
         document.addEventListener('DOMContentLoaded', function() {
             setToday();
+            loadExceptionsList();
         });
 
         // 오늘 날짜로 설정
@@ -733,6 +783,184 @@
                 calculatePromotions();
             }
         });
+
+        // ===== 예외 사항 관리 함수 =====
+
+        // 예외 유형 한글 레이블
+        function getExceptionTypeLabel(type) {
+            const labels = {
+                'resignation': '사직서 제출',
+                'failed': '승진 탈락',
+                'leave': '휴직',
+                'discipline': '징계',
+                'other': '기타'
+            };
+            return labels[type] || type;
+        }
+
+        // 예외 사항 추가
+        function addException() {
+            const department = document.getElementById('exceptionDepartment').value.trim();
+            const name = document.getElementById('exceptionName').value.trim();
+            const type = document.getElementById('exceptionType').value;
+            const reason = document.getElementById('exceptionReason').value.trim();
+            const note = document.getElementById('exceptionNote').value.trim();
+
+            // 필수 항목 검증
+            if (!department) {
+                alert('소속학과를 입력하세요.');
+                document.getElementById('exceptionDepartment').focus();
+                return;
+            }
+
+            if (!name) {
+                alert('성명을 입력하세요.');
+                document.getElementById('exceptionName').focus();
+                return;
+            }
+
+            if (!type) {
+                alert('예외 유형을 선택하세요.');
+                document.getElementById('exceptionType').focus();
+                return;
+            }
+
+            // 예외 객체 생성
+            const exception = {
+                department: department,
+                name: name,
+                type: type,
+                reason: reason || '',
+                note: note || '',
+                isActive: true,
+                addedDate: new Date().toISOString()
+            };
+
+            // 기존 예외 목록 가져오기
+            const exceptions = promotionEngine.getExceptions();
+
+            // 중복 확인
+            const duplicate = exceptions.find(ex =>
+                ex.name === name &&
+                ex.department === department &&
+                ex.isActive
+            );
+
+            if (duplicate) {
+                if (!confirm(`${name} (${department})는 이미 예외 목록에 등록되어 있습니다.\n계속 추가하시겠습니까?`)) {
+                    return;
+                }
+            }
+
+            // 추가
+            exceptions.push(exception);
+            promotionEngine.saveExceptions(exceptions);
+
+            // 폼 초기화
+            document.getElementById('exceptionDepartment').value = '';
+            document.getElementById('exceptionName').value = '';
+            document.getElementById('exceptionType').value = '';
+            document.getElementById('exceptionReason').value = '';
+            document.getElementById('exceptionNote').value = '';
+
+            // 목록 새로고침
+            loadExceptionsList();
+
+            // 승진 대상자 재계산
+            if (facultyData.length > 0) {
+                calculatePromotions();
+            }
+
+            alert('예외 사항이 추가되었습니다.');
+        }
+
+        // 예외 목록 로드
+        function loadExceptionsList() {
+            if (!promotionEngine) {
+                promotionEngine = new PromotionEngine(currentBaseDate);
+            }
+
+            const exceptions = promotionEngine.getExceptions();
+            const container = document.getElementById('exceptionsList');
+
+            if (exceptions.length === 0) {
+                container.innerHTML = '<p class="text-center text-muted p-3">등록된 예외 사항이 없습니다.</p>';
+                return;
+            }
+
+            let html = '<div style="display: flex; flex-direction: column; gap: var(--spacing-sm);">';
+
+            exceptions.forEach((exception, index) => {
+                const typeLabel = getExceptionTypeLabel(exception.type);
+                const addedDate = new Date(exception.addedDate);
+                const dateStr = DateUtils.formatDate(addedDate);
+
+                html += `
+                    <div style="background: white; border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: var(--spacing-md); ${!exception.isActive ? 'opacity: 0.5;' : ''}">
+                        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: var(--spacing-sm);">
+                            <div style="flex: 1;">
+                                <div style="font-weight: 600; font-size: var(--font-size-lg); margin-bottom: var(--spacing-xs);">
+                                    ${exception.name} <span style="color: var(--text-secondary); font-weight: 400; font-size: var(--font-size-sm);">(${exception.department})</span>
+                                </div>
+                                <div style="margin-bottom: var(--spacing-xs);">
+                                    <span class="badge badge-${exception.isActive ? 'primary' : 'secondary'}">${typeLabel}</span>
+                                    ${!exception.isActive ? '<span class="badge badge-secondary">비활성</span>' : ''}
+                                </div>
+                                ${exception.reason ? `<div style="color: var(--text-secondary); font-size: var(--font-size-sm); margin-bottom: var(--spacing-xs);">사유: ${exception.reason}</div>` : ''}
+                                ${exception.note ? `<div style="color: var(--text-muted); font-size: var(--font-size-sm);">비고: ${exception.note}</div>` : ''}
+                                <div style="color: var(--text-muted); font-size: var(--font-size-xs); margin-top: var(--spacing-xs);">등록일: ${dateStr}</div>
+                            </div>
+                            <div style="display: flex; gap: var(--spacing-xs);">
+                                <button class="btn btn-sm btn-outline" onclick="toggleException(${index})" title="${exception.isActive ? '비활성화' : '활성화'}">
+                                    ${exception.isActive ? '⏸️' : '▶️'}
+                                </button>
+                                <button class="btn btn-sm btn-danger" onclick="deleteException(${index})" title="삭제">
+                                    🗑️
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            html += '</div>';
+            container.innerHTML = html;
+        }
+
+        // 예외 삭제
+        function deleteException(index) {
+            const exceptions = promotionEngine.getExceptions();
+            const exception = exceptions[index];
+
+            if (!confirm(`${exception.name} (${exception.department})의 예외 사항을 삭제하시겠습니까?`)) {
+                return;
+            }
+
+            exceptions.splice(index, 1);
+            promotionEngine.saveExceptions(exceptions);
+
+            loadExceptionsList();
+
+            // 승진 대상자 재계산
+            if (facultyData.length > 0) {
+                calculatePromotions();
+            }
+        }
+
+        // 예외 활성화/비활성화 토글
+        function toggleException(index) {
+            const exceptions = promotionEngine.getExceptions();
+            exceptions[index].isActive = !exceptions[index].isActive;
+
+            promotionEngine.saveExceptions(exceptions);
+
+            loadExceptionsList();
+
+            // 승진 대상자 재계산
+            if (facultyData.length > 0) {
+                calculatePromotions();
+            }
+        }
     </script>
 </body>
 </html>
