@@ -281,16 +281,9 @@ class PromotionEngine {
     /**
      * 승진 대상자 여부 판정
      * @param {Object} teacher - 교원 정보
-     * @param {Date} nextPromotionDate - 다음 승진일 (null일 수 있음)
+     * @param {Date} providedPromotionDate - 다음 승진일 (null일 수 있음)
      */
-    isPromotionCandidate(teacher, nextPromotionDate = null) {
-        // 0. 예외 사항 확인 (최우선)
-        const exception = this.checkException(teacher, nextPromotionDate);
-        if (exception.hasException) {
-            console.log('❌ 예외 사항:', teacher['성명'], exception.type, exception.appliesTo, exception.reason);
-            return false;
-        }
-
+    isPromotionCandidate(teacher, providedPromotionDate = null) {
         // 1. 직급 확인 (교수는 제외)
         const rank = teacher['직급'];
 
@@ -306,9 +299,16 @@ class PromotionEngine {
         }
 
         // 2. 다음 승진일 계산
-        const nextPromotionDate = this.getNextPromotionDate(teacher);
+        const nextPromotionDate = providedPromotionDate || this.getNextPromotionDate(teacher);
         if (!nextPromotionDate) {
             console.log('승진일 없음:', teacher['성명'], rank);
+            return false;
+        }
+
+        // 0. 예외 사항 확인 (최우선, 승진일 계산 후)
+        const exception = this.checkException(teacher, nextPromotionDate);
+        if (exception.hasException) {
+            console.log('❌ 예외 사항:', teacher['성명'], exception.type, exception.appliesTo, exception.reason);
             return false;
         }
 
