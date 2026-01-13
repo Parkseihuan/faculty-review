@@ -80,26 +80,6 @@
             color: var(--text-secondary);
         }
 
-        .upload-section {
-            background: var(--bg-primary);
-            border: 2px dashed var(--border-color);
-            border-radius: var(--radius-md);
-            padding: var(--spacing-xl);
-            text-align: center;
-            margin-bottom: var(--spacing-lg);
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-
-        .upload-section:hover {
-            border-color: var(--color-primary);
-            background: var(--bg-secondary);
-        }
-
-        .upload-section input {
-            display: none;
-        }
-
         .search-controls {
             display: flex;
             gap: var(--spacing-md);
@@ -336,17 +316,6 @@
             </div>
         </div>
 
-        <!-- 엑셀 업로드 -->
-        <div class="upload-section no-print" onclick="document.getElementById('fileInput').click()">
-            <input type="file" id="fileInput" accept=".xlsx,.xls" onchange="loadExcelFile(event)">
-            <div style="font-size: var(--font-size-lg); margin-bottom: var(--spacing-xs);">
-                📊 교원현황 엑셀 파일 업로드
-            </div>
-            <div style="font-size: var(--font-size-sm); color: var(--text-secondary);">
-                클릭하거나 파일을 드래그하여 업로드하세요
-            </div>
-        </div>
-
         <!-- 탭 UI -->
         <div class="tabs-container">
             <div class="tabs-nav no-print">
@@ -541,100 +510,6 @@
                     </div>
                 </div>
             `;
-        }
-
-        // 엑셀 파일 로드
-        async function loadExcelFile(event) {
-            const file = event.target.files[0];
-            console.log('파일 선택됨:', file);
-
-            if (!file) {
-                console.log('파일이 선택되지 않음');
-                return;
-            }
-
-            console.log('파일 읽기 시작:', file.name);
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                try {
-                    console.log('파일 읽기 완료, 파싱 시작');
-                    const data = new Uint8Array(e.target.result);
-                    const workbook = XLSX.read(data, { type: 'array' });
-
-                    console.log('엑셀 시트 수:', workbook.SheetNames.length);
-                    const firstSheetName = workbook.SheetNames[0];
-                    console.log('첫 번째 시트:', firstSheetName);
-
-                    const worksheet = workbook.Sheets[firstSheetName];
-                    const rawData = XLSX.utils.sheet_to_json(worksheet, {header: 1});
-
-                    console.log('전체 행 수:', rawData.length);
-                    console.log('첫 5행:', rawData.slice(0, 5));
-
-                    // 헤더 찾기
-                    let headerRowIndex = -1;
-                    let headers = [];
-
-                    for (let i = 0; i < rawData.length; i++) {
-                        if (rawData[i] && rawData[i][0] === 'No.' && rawData[i].includes('성명')) {
-                            headerRowIndex = i;
-                            headers = rawData[i];
-                            console.log('헤더 찾음 (행:', i, '):', headers);
-                            break;
-                        }
-                    }
-
-                    if (headerRowIndex === -1) {
-                        console.error('헤더를 찾을 수 없습니다. 첫 10행:', rawData.slice(0, 10));
-                        throw new Error('헤더를 찾을 수 없습니다.');
-                    }
-
-                    // 데이터 추출
-                    const actualDataRows = rawData.slice(headerRowIndex + 1).filter(row =>
-                        row && row.length > 0 && row[0] && typeof row[0] === 'number'
-                    );
-
-                    // 객체 배열로 변환
-                    const jsonData = actualDataRows.map(row => {
-                        const obj = {};
-                        headers.forEach((header, index) => {
-                            obj[header] = row[index];
-                        });
-                        return obj;
-                    });
-
-                    console.log('전체 데이터 행 수:', jsonData.length);
-                    console.log('첫 번째 교원 데이터:', jsonData[0]);
-
-                    // 재직중인 전임교원만 필터링
-                    facultyData = jsonData.filter(teacher => {
-                        const workStatus = teacher['재직구분'];
-                        const position = teacher['직렬'];
-                        return workStatus && workStatus.toString().includes('재직') &&
-                               position && position.toString().includes('전임교원');
-                    });
-
-                    console.log('필터링 후 전임교원 수:', facultyData.length);
-
-                    if (facultyData.length === 0) {
-                        alert('재직중인 전임교원 데이터가 없습니다.');
-                        return;
-                    }
-
-                    // 로컬 스토리지에 저장
-                    StorageUtils.set('facultyData', facultyData);
-                    StorageUtils.set('lastUploadDate', new Date().toISOString());
-
-                    console.log('승진 대상자 계산 시작');
-                    calculatePromotions();
-
-                } catch (error) {
-                    console.error('파일 처리 오류:', error);
-                    alert('파일 읽기 중 오류가 발생했습니다: ' + error.message);
-                }
-            };
-
-            reader.readAsArrayBuffer(file);
         }
 
         // 승진 대상자 계산
@@ -832,30 +707,6 @@
             // 인쇄
             window.print();
         }
-
-        // 파일 드래그 앤 드롭
-        const uploadSection = document.querySelector('.upload-section');
-
-        uploadSection.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            uploadSection.style.borderColor = 'var(--color-primary)';
-        });
-
-        uploadSection.addEventListener('dragleave', (e) => {
-            e.preventDefault();
-            uploadSection.style.borderColor = 'var(--border-color)';
-        });
-
-        uploadSection.addEventListener('drop', (e) => {
-            e.preventDefault();
-            uploadSection.style.borderColor = 'var(--border-color)';
-
-            const files = e.dataTransfer.files;
-            if (files.length > 0) {
-                const event = { target: { files: [files[0]] } };
-                loadExcelFile(event);
-            }
-        });
 
         // 페이지 로드 시 저장된 데이터 복원
         window.addEventListener('load', () => {

@@ -169,20 +169,60 @@
     </div>
 
     <div class="container">
-        <!-- 파일 업로드 -->
-        <div class="upload-section" id="uploadSection">
-            <input type="file" id="fileInput" accept=".xlsx,.xls" onchange="loadExcelFile(event)">
-            <div class="upload-icon">📊</div>
-            <h3 class="upload-title">교원현황 엑셀 파일 업로드</h3>
-            <p class="upload-description">
-                클릭하거나 파일을 드래그하여 업로드하세요<br>
-                <small>(지원 형식: .xlsx, .xls)</small>
-            </p>
-            <button class="btn btn-primary" onclick="document.getElementById('fileInput').click()">
-                파일 선택
-            </button>
-            <div class="file-info" id="fileInfo">
-                <strong id="fileName"></strong> - <span id="fileSize"></span>
+        <!-- 교원현황 파일 업로드 -->
+        <div class="card" style="margin-bottom: var(--spacing-xl);">
+            <div class="card-header">
+                <h3 class="card-title">📊 교원현황 데이터</h3>
+            </div>
+            <div class="card-body">
+                <div class="upload-section" id="uploadSection">
+                    <input type="file" id="fileInput" accept=".xlsx,.xls" onchange="loadExcelFile(event)">
+                    <div class="upload-icon">📊</div>
+                    <h3 class="upload-title">교원현황 엑셀 파일 업로드</h3>
+                    <p class="upload-description">
+                        클릭하거나 파일을 드래그하여 업로드하세요<br>
+                        <small>(지원 형식: .xlsx, .xls)</small>
+                    </p>
+                    <button class="btn btn-primary" onclick="document.getElementById('fileInput').click()">
+                        파일 선택
+                    </button>
+                    <div class="file-info" id="fileInfo">
+                        <strong id="fileName"></strong> - <span id="fileSize"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 발령사항 파일 업로드 -->
+        <div class="card" style="margin-bottom: var(--spacing-xl);">
+            <div class="card-header">
+                <h3 class="card-title">📋 교원 발령사항 현황</h3>
+            </div>
+            <div class="card-body">
+                <p style="color: var(--text-secondary); margin-bottom: var(--spacing-md);">
+                    발령사항 파일을 업로드하면 사직, 휴직, 징계 등의 정보를 자동으로 분석하여 승진 예외 사항에 등록합니다.
+                </p>
+                <div class="upload-section" id="appointmentUploadSection" style="margin-bottom: 0;">
+                    <input type="file" id="appointmentFileInput" accept=".xlsx,.xls" onchange="loadAppointmentFile(event)">
+                    <div class="upload-icon">📋</div>
+                    <h3 class="upload-title">발령사항 엑셀 파일 업로드</h3>
+                    <p class="upload-description">
+                        클릭하거나 파일을 드래그하여 업로드하세요<br>
+                        <small>(지원 형식: .xlsx, .xls)</small>
+                    </p>
+                    <button class="btn btn-primary" onclick="document.getElementById('appointmentFileInput').click()">
+                        파일 선택
+                    </button>
+                    <div class="file-info" id="appointmentFileInfo">
+                        <strong id="appointmentFileName"></strong> - <span id="appointmentFileSize"></span>
+                    </div>
+                </div>
+
+                <!-- 분석 결과 -->
+                <div id="appointmentAnalysisResult" style="display: none; margin-top: var(--spacing-md); padding: var(--spacing-md); background: var(--bg-secondary); border-radius: var(--radius-md);">
+                    <h4 style="margin-bottom: var(--spacing-sm);">분석 결과</h4>
+                    <div id="appointmentAnalysisContent"></div>
+                </div>
             </div>
         </div>
 
@@ -268,6 +308,7 @@
     <!-- JavaScript -->
     <script src="js/common.js"></script>
     <script src="js/navigation.js"></script>
+    <script src="js/promotion-engine.js"></script>
     <script>
         let facultyData = [];
         let filteredData = [];
@@ -540,6 +581,232 @@
             if (files.length > 0) {
                 const event = { target: { files: [files[0]] } };
                 loadExcelFile(event);
+            }
+        });
+
+        // 발령사항 파일 로드 및 분석
+        async function loadAppointmentFile(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            // 파일 정보 표시
+            const fileInfo = document.getElementById('appointmentFileInfo');
+            const fileName = document.getElementById('appointmentFileName');
+            const fileSize = document.getElementById('appointmentFileSize');
+
+            fileName.textContent = file.name;
+            fileSize.textContent = (file.size / 1024 / 1024).toFixed(2) + ' MB';
+            fileInfo.classList.add('show');
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+
+                    const firstSheetName = workbook.SheetNames[0];
+                    const worksheet = workbook.Sheets[firstSheetName];
+                    const rawData = XLSX.utils.sheet_to_json(worksheet, {header: 1});
+
+                    // 헤더 찾기
+                    let headerRowIndex = -1;
+                    let headers = [];
+
+                    for (let i = 0; i < rawData.length; i++) {
+                        if (rawData[i] && rawData[i].includes('성명')) {
+                            headerRowIndex = i;
+                            headers = rawData[i];
+                            break;
+                        }
+                    }
+
+                    if (headerRowIndex === -1) {
+                        throw new Error('헤더를 찾을 수 없습니다. 발령사항 엑셀 파일인지 확인해주세요.');
+                    }
+
+                    // 데이터 추출
+                    const actualDataRows = rawData.slice(headerRowIndex + 1).filter(row =>
+                        row && row.length > 0
+                    );
+
+                    // 객체 배열로 변환
+                    const appointmentData = actualDataRows.map(row => {
+                        const obj = {};
+                        headers.forEach((header, index) => {
+                            obj[header] = row[index];
+                        });
+                        return obj;
+                    });
+
+                    console.log('발령사항 데이터:', appointmentData.length, '건');
+                    console.log('샘플 데이터:', appointmentData[0]);
+
+                    // 예외 사항 자동 생성
+                    analyzeAndCreateExceptions(appointmentData);
+
+                } catch (error) {
+                    console.error('발령사항 파일 처리 오류:', error);
+                    alert('파일 읽기 중 오류가 발생했습니다: ' + error.message);
+                }
+            };
+
+            reader.readAsArrayBuffer(file);
+        }
+
+        // 발령사항 분석 및 예외 사항 자동 생성
+        function analyzeAndCreateExceptions(appointmentData) {
+            const promotionEngine = new PromotionEngine(new Date());
+            const existingExceptions = promotionEngine.getExceptions();
+
+            let createdExceptions = [];
+            let resignationCount = 0;
+            let leaveCount = 0;
+            let disciplineCount = 0;
+            let otherCount = 0;
+
+            appointmentData.forEach(record => {
+                const name = record['성명'];
+                const department = record['소속'] || record['부서'] || record['학과'];
+                const appointmentType = record['발령구분'] || record['발령사유'] || record['구분'];
+                const appointmentDate = record['발령일'] || record['발령일자'];
+
+                if (!name || !appointmentType) return;
+
+                const typeStr = appointmentType.toString().toLowerCase();
+                let exceptionType = null;
+                let reason = appointmentType;
+
+                // 사직 관련
+                if (typeStr.includes('사직') || typeStr.includes('의원면직') || typeStr.includes('퇴직')) {
+                    exceptionType = 'resignation';
+                    resignationCount++;
+                }
+                // 휴직 관련
+                else if (typeStr.includes('휴직')) {
+                    exceptionType = 'leave';
+                    leaveCount++;
+                }
+                // 징계 관련
+                else if (typeStr.includes('징계') || typeStr.includes('정직') || typeStr.includes('감봉')) {
+                    exceptionType = 'discipline';
+                    disciplineCount++;
+                }
+
+                if (exceptionType) {
+                    // 중복 확인 (같은 이름+소속+유형이 이미 있는지)
+                    const isDuplicate = existingExceptions.some(ex =>
+                        ex.name === name &&
+                        (!ex.department || ex.department === department) &&
+                        ex.type === exceptionType
+                    );
+
+                    if (!isDuplicate) {
+                        const exception = {
+                            department: department || '',
+                            name: name,
+                            type: exceptionType,
+                            promotionDate: exceptionType === 'resignation' ? null : (appointmentDate || null),
+                            reason: reason,
+                            note: `발령사항 파일에서 자동 등록 (${DateUtils.formatDate(new Date())})`,
+                            isActive: true,
+                            addedDate: new Date().toISOString()
+                        };
+
+                        existingExceptions.push(exception);
+                        createdExceptions.push(exception);
+
+                        if (exceptionType !== 'resignation') {
+                            if (exceptionType === 'leave') leaveCount++;
+                            else if (exceptionType === 'discipline') disciplineCount++;
+                            else otherCount++;
+                        }
+                    }
+                }
+            });
+
+            // 예외 사항 저장
+            promotionEngine.saveExceptions(existingExceptions);
+
+            // 분석 결과 표시
+            showAnalysisResult({
+                total: createdExceptions.length,
+                resignation: resignationCount,
+                leave: leaveCount,
+                discipline: disciplineCount,
+                other: otherCount,
+                exceptions: createdExceptions
+            });
+        }
+
+        // 분석 결과 표시
+        function showAnalysisResult(result) {
+            const resultDiv = document.getElementById('appointmentAnalysisResult');
+            const contentDiv = document.getElementById('appointmentAnalysisContent');
+
+            if (result.total === 0) {
+                contentDiv.innerHTML = `
+                    <p style="color: var(--text-secondary);">
+                        새로운 예외 사항이 발견되지 않았습니다.<br>
+                        (이미 등록된 항목이거나 사직/휴직/징계 기록이 없습니다)
+                    </p>
+                `;
+            } else {
+                let html = `
+                    <div style="margin-bottom: var(--spacing-md);">
+                        <strong>${result.total}건의 예외 사항이 자동으로 등록되었습니다.</strong>
+                    </div>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: var(--spacing-sm); margin-bottom: var(--spacing-md);">
+                        <div style="padding: var(--spacing-sm); background: white; border-radius: var(--radius-sm); text-align: center;">
+                            <div style="font-size: var(--font-size-xl); font-weight: 600; color: var(--color-danger);">${result.resignation}</div>
+                            <div style="font-size: var(--font-size-sm); color: var(--text-secondary);">사직서 제출</div>
+                        </div>
+                        <div style="padding: var(--spacing-sm); background: white; border-radius: var(--radius-sm); text-align: center;">
+                            <div style="font-size: var(--font-size-xl); font-weight: 600; color: var(--color-warning);">${result.leave}</div>
+                            <div style="font-size: var(--font-size-sm); color: var(--text-secondary);">휴직</div>
+                        </div>
+                        <div style="padding: var(--spacing-sm); background: white; border-radius: var(--radius-sm); text-align: center;">
+                            <div style="font-size: var(--font-size-xl); font-weight: 600; color: var(--color-primary);">${result.discipline}</div>
+                            <div style="font-size: var(--font-size-sm); color: var(--text-secondary);">징계</div>
+                        </div>
+                    </div>
+                    <div style="margin-top: var(--spacing-md);">
+                        <a href="promotion.html" class="btn btn-primary">승진 관리에서 확인하기</a>
+                    </div>
+                `;
+
+                contentDiv.innerHTML = html;
+            }
+
+            resultDiv.style.display = 'block';
+        }
+
+        // 발령사항 드래그 앤 드롭
+        const appointmentUploadSection = document.getElementById('appointmentUploadSection');
+
+        appointmentUploadSection.addEventListener('click', function(e) {
+            if (e.target === appointmentUploadSection || e.target.closest('.upload-icon, .upload-title, .upload-description')) {
+                document.getElementById('appointmentFileInput').click();
+            }
+        });
+
+        appointmentUploadSection.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            appointmentUploadSection.classList.add('drag-over');
+        });
+
+        appointmentUploadSection.addEventListener('dragleave', (e) => {
+            e.preventDefault();
+            appointmentUploadSection.classList.remove('drag-over');
+        });
+
+        appointmentUploadSection.addEventListener('drop', (e) => {
+            e.preventDefault();
+            appointmentUploadSection.classList.remove('drag-over');
+
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                const event = { target: { files: [files[0]] } };
+                loadAppointmentFile(event);
             }
         });
     </script>
