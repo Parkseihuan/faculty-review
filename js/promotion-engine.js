@@ -210,28 +210,58 @@ class PromotionEngine {
 
     /**
      * 특정 교원이 예외 사항에 해당하는지 확인
+     * @param {Object} teacher - 교원 정보
+     * @param {Date} nextPromotionDate - 다음 승진일 (null일 수 있음)
      */
-    checkException(teacher) {
+    checkException(teacher, nextPromotionDate) {
         const exceptions = this.getExceptions();
         const teacherName = teacher['성명'];
         const department = teacher['소속'];
 
-        // 이름과 소속이 일치하는 예외 사항 찾기
-        const exception = exceptions.find(ex =>
+        // 이름과 소속이 일치하는 활성화된 예외 사항 찾기
+        const matchingExceptions = exceptions.filter(ex =>
             ex.name === teacherName &&
             (!ex.department || ex.department === department) &&
             ex.isActive
         );
 
-        if (exception) {
-            return {
-                hasException: true,
-                type: exception.type,
-                reason: exception.reason,
-                note: exception.note
-            };
+        // 일치하는 예외가 없으면 예외 없음
+        if (matchingExceptions.length === 0) {
+            return { hasException: false };
         }
 
+        // 예외가 있는 경우, 승진일 기준으로 필터링
+        for (const exception of matchingExceptions) {
+            // promotionDate가 null이면 영구 제외 (모든 승진일에 적용)
+            if (!exception.promotionDate) {
+                return {
+                    hasException: true,
+                    type: exception.type,
+                    reason: exception.reason,
+                    note: exception.note,
+                    appliesTo: '영구 제외'
+                };
+            }
+
+            // promotionDate가 있으면 해당 승진일과 비교
+            if (nextPromotionDate) {
+                const exceptionDate = new Date(exception.promotionDate);
+                // 연도, 월, 일이 모두 일치하는지 확인
+                if (exceptionDate.getFullYear() === nextPromotionDate.getFullYear() &&
+                    exceptionDate.getMonth() === nextPromotionDate.getMonth() &&
+                    exceptionDate.getDate() === nextPromotionDate.getDate()) {
+                    return {
+                        hasException: true,
+                        type: exception.type,
+                        reason: exception.reason,
+                        note: exception.note,
+                        appliesTo: exception.promotionDate
+                    };
+                }
+            }
+        }
+
+        // 해당 승진일에는 예외가 적용되지 않음
         return { hasException: false };
     }
 
@@ -250,12 +280,14 @@ class PromotionEngine {
 
     /**
      * 승진 대상자 여부 판정
+     * @param {Object} teacher - 교원 정보
+     * @param {Date} nextPromotionDate - 다음 승진일 (null일 수 있음)
      */
-    isPromotionCandidate(teacher) {
+    isPromotionCandidate(teacher, nextPromotionDate = null) {
         // 0. 예외 사항 확인 (최우선)
-        const exception = this.checkException(teacher);
+        const exception = this.checkException(teacher, nextPromotionDate);
         if (exception.hasException) {
-            console.log('❌ 예외 사항:', teacher['성명'], exception.type, exception.reason);
+            console.log('❌ 예외 사항:', teacher['성명'], exception.type, exception.appliesTo, exception.reason);
             return false;
         }
 
@@ -324,7 +356,7 @@ class PromotionEngine {
         }
 
         return {
-            isCandidate: this.isPromotionCandidate(teacher),
+            isCandidate: this.isPromotionCandidate(teacher, nextPromotionDate),
             appointmentType,
             currentRank: rank,
             yearsInRank: yearsInRank ? yearsInRank.toFixed(1) : null,

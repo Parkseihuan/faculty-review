@@ -220,6 +220,51 @@
         .promotion-group .table {
             margin-bottom: 0;
         }
+
+        /* 탭 스타일 */
+        .tabs-container {
+            margin-bottom: var(--spacing-lg);
+        }
+
+        .tabs-nav {
+            display: flex;
+            gap: var(--spacing-xs);
+            border-bottom: 2px solid var(--border-color);
+            margin-bottom: var(--spacing-lg);
+        }
+
+        .tab-button {
+            padding: var(--spacing-md) var(--spacing-lg);
+            background: transparent;
+            border: none;
+            border-bottom: 3px solid transparent;
+            cursor: pointer;
+            font-size: var(--font-size-md);
+            font-weight: 500;
+            color: var(--text-secondary);
+            transition: all 0.2s ease;
+            position: relative;
+            bottom: -2px;
+        }
+
+        .tab-button:hover {
+            color: var(--color-primary);
+            background: var(--bg-secondary);
+        }
+
+        .tab-button.active {
+            color: var(--color-primary);
+            border-bottom-color: var(--color-primary);
+            font-weight: 600;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
     </style>
 </head>
 <body>
@@ -302,8 +347,44 @@
             </div>
         </div>
 
-        <!-- 예외 사항 관리 -->
-        <div class="card no-print">
+        <!-- 탭 UI -->
+        <div class="tabs-container">
+            <div class="tabs-nav no-print">
+                <button class="tab-button active" onclick="switchTab('candidates')">📋 승진 대상자 목록</button>
+                <button class="tab-button" onclick="switchTab('exceptions')">⚙️ 예외 사항 관리</button>
+            </div>
+
+            <!-- 탭1: 승진 대상자 목록 -->
+            <div id="tab-candidates" class="tab-content active">
+                <!-- 검색 및 필터 -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">승진 대상자 목록 (당해 연도)</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="search-controls no-print">
+                            <input type="text" id="searchBox" class="form-control" placeholder="교원명, 소속, 직급 검색..." onkeyup="filterTable()">
+                            <div class="filter-buttons">
+                                <button class="filter-btn active" onclick="filterByPeriod('all')">전체</button>
+                                <button class="filter-btn" onclick="filterByPeriod('april')">4월 승진</button>
+                                <button class="filter-btn" onclick="filterByPeriod('october')">10월 승진</button>
+                                <button class="filter-btn" onclick="filterByPeriod('urgent')">마감 임박</button>
+                            </div>
+                            <button class="btn btn-primary btn-sm" onclick="printPromotionList()">📄 인쇄</button>
+                        </div>
+
+                        <div id="promotionGroupsContainer">
+                            <div class="empty-state" style="padding: var(--spacing-xl); text-align: center; color: var(--text-muted);">
+                                엑셀 파일을 업로드하여 데이터를 불러오세요
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 탭2: 예외 사항 관리 -->
+            <div id="tab-exceptions" class="tab-content">
+                <div class="card no-print">
             <div class="card-header">
                 <h3 class="card-title">예외 사항 관리</h3>
             </div>
@@ -324,14 +405,21 @@
                     </div>
                     <div class="form-group">
                         <label class="form-label">예외 유형 *</label>
-                        <select id="exceptionType" class="form-control">
+                        <select id="exceptionType" class="form-control" onchange="togglePromotionDateField()">
                             <option value="">선택하세요</option>
-                            <option value="resignation">사직서 제출</option>
-                            <option value="failed">승진 탈락</option>
-                            <option value="leave">휴직</option>
-                            <option value="discipline">징계</option>
+                            <option value="resignation">사직서 제출 (영구 제외)</option>
+                            <option value="failed">승진 탈락 (특정 승진일만 제외)</option>
+                            <option value="leave">휴직 (특정 승진일만 제외)</option>
+                            <option value="discipline">징계 (특정 승진일만 제외)</option>
                             <option value="other">기타</option>
                         </select>
+                    </div>
+                    <div class="form-group" id="promotionDateGroup" style="display: none;">
+                        <label class="form-label">적용 승진일 (이 승진일에만 제외) *</label>
+                        <input type="date" id="exceptionPromotionDate" class="form-control">
+                        <small style="color: var(--text-muted); font-size: var(--font-size-sm);">
+                            승진 탈락, 휴직 등의 경우 제외할 특정 승진일을 지정하세요. (예: 2025-10-01)
+                        </small>
                     </div>
                     <div class="form-group">
                         <label class="form-label">사유</label>
@@ -350,29 +438,6 @@
                 </div>
             </div>
         </div>
-
-        <!-- 검색 및 필터 -->
-        <div class="card">
-            <div class="card-header">
-                <h3 class="card-title">승진 대상자 목록 (당해 연도)</h3>
-            </div>
-            <div class="card-body">
-                <div class="search-controls no-print">
-                    <input type="text" id="searchBox" class="form-control" placeholder="교원명, 소속, 직급 검색..." onkeyup="filterTable()">
-                    <div class="filter-buttons">
-                        <button class="filter-btn active" onclick="filterByPeriod('all')">전체</button>
-                        <button class="filter-btn" onclick="filterByPeriod('april')">4월 승진</button>
-                        <button class="filter-btn" onclick="filterByPeriod('october')">10월 승진</button>
-                        <button class="filter-btn" onclick="filterByPeriod('urgent')">마감 임박</button>
-                    </div>
-                    <button class="btn btn-primary btn-sm" onclick="printPromotionList()">📄 인쇄</button>
-                </div>
-
-                <div id="promotionGroupsContainer">
-                    <div class="empty-state" style="padding: var(--spacing-xl); text-align: center; color: var(--text-muted);">
-                        엑셀 파일을 업로드하여 데이터를 불러오세요
-                    </div>
-                </div>
             </div>
         </div>
 
@@ -408,6 +473,23 @@
             setToday();
             loadExceptionsList();
         });
+
+        // 탭 전환 함수
+        function switchTab(tabName) {
+            // 모든 탭 버튼 비활성화
+            document.querySelectorAll('.tab-button').forEach(btn => {
+                btn.classList.remove('active');
+            });
+
+            // 모든 탭 컨텐츠 숨기기
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+
+            // 선택된 탭 활성화
+            event.target.classList.add('active');
+            document.getElementById('tab-' + tabName).classList.add('active');
+        }
 
         // 오늘 날짜로 설정
         function setToday() {
@@ -786,6 +868,23 @@
 
         // ===== 예외 사항 관리 함수 =====
 
+        // 예외 유형에 따라 승진일 필드 표시/숨김
+        function togglePromotionDateField() {
+            const type = document.getElementById('exceptionType').value;
+            const promotionDateGroup = document.getElementById('promotionDateGroup');
+            const promotionDateInput = document.getElementById('exceptionPromotionDate');
+
+            // 사직(resignation)과 기타(other)는 영구 제외이므로 승진일 불필요
+            if (type === 'failed' || type === 'leave' || type === 'discipline') {
+                promotionDateGroup.style.display = 'block';
+                promotionDateInput.required = true;
+            } else {
+                promotionDateGroup.style.display = 'none';
+                promotionDateInput.required = false;
+                promotionDateInput.value = '';
+            }
+        }
+
         // 예외 유형 한글 레이블
         function getExceptionTypeLabel(type) {
             const labels = {
@@ -803,6 +902,7 @@
             const department = document.getElementById('exceptionDepartment').value.trim();
             const name = document.getElementById('exceptionName').value.trim();
             const type = document.getElementById('exceptionType').value;
+            const promotionDate = document.getElementById('exceptionPromotionDate').value;
             const reason = document.getElementById('exceptionReason').value.trim();
             const note = document.getElementById('exceptionNote').value.trim();
 
@@ -825,11 +925,19 @@
                 return;
             }
 
+            // 승진 탈락, 휴직, 징계의 경우 승진일 필수
+            if ((type === 'failed' || type === 'leave' || type === 'discipline') && !promotionDate) {
+                alert('적용 승진일을 선택하세요.');
+                document.getElementById('exceptionPromotionDate').focus();
+                return;
+            }
+
             // 예외 객체 생성
             const exception = {
                 department: department,
                 name: name,
                 type: type,
+                promotionDate: promotionDate || null,  // 특정 승진일 (또는 null = 영구 제외)
                 reason: reason || '',
                 note: note || '',
                 isActive: true,
@@ -860,8 +968,10 @@
             document.getElementById('exceptionDepartment').value = '';
             document.getElementById('exceptionName').value = '';
             document.getElementById('exceptionType').value = '';
+            document.getElementById('exceptionPromotionDate').value = '';
             document.getElementById('exceptionReason').value = '';
             document.getElementById('exceptionNote').value = '';
+            document.getElementById('promotionDateGroup').style.display = 'none';
 
             // 목록 새로고침
             loadExceptionsList();
@@ -904,6 +1014,7 @@
                                 </div>
                                 <div style="margin-bottom: var(--spacing-xs);">
                                     <span class="badge badge-${exception.isActive ? 'primary' : 'secondary'}">${typeLabel}</span>
+                                    ${exception.promotionDate ? `<span class="badge badge-warning">${exception.promotionDate} 제외</span>` : '<span class="badge badge-danger">영구 제외</span>'}
                                     ${!exception.isActive ? '<span class="badge badge-secondary">비활성</span>' : ''}
                                 </div>
                                 ${exception.reason ? `<div style="color: var(--text-secondary); font-size: var(--font-size-sm); margin-bottom: var(--spacing-xs);">사유: ${exception.reason}</div>` : ''}
