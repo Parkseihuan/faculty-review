@@ -663,21 +663,33 @@
             let leaveCount = 0;
             let disciplineCount = 0;
             let otherCount = 0;
+            let filteredCount = 0;
 
             appointmentData.forEach(record => {
                 const name = record['성명'];
                 const department = record['소속'] || record['부서'] || record['학과'];
                 const appointmentType = record['발령구분'] || record['발령사유'] || record['구분'];
                 const appointmentDate = record['발령일'] || record['발령일자'];
+                const workStatus = record['재직구분'];
+                const position = record['직렬'];
 
                 if (!name || !appointmentType) return;
+
+                // 재직중인 전임교원만 처리
+                const isActive = workStatus && workStatus.toString().trim().includes('재직');
+                const isFullTime = position && position.toString().includes('전임교원');
+
+                if (!isActive || !isFullTime) {
+                    filteredCount++;
+                    return; // 퇴직자 및 비전임 교원 제외
+                }
 
                 const typeStr = appointmentType.toString().toLowerCase();
                 let exceptionType = null;
                 let reason = appointmentType;
 
-                // 사직 관련
-                if (typeStr.includes('사직') || typeStr.includes('의원면직') || typeStr.includes('퇴직')) {
+                // 사직 관련 (재직중인 교원의 사직서 제출만)
+                if (typeStr.includes('사직') || typeStr.includes('의원면직')) {
                     exceptionType = 'resignation';
                     resignationCount++;
                 }
@@ -734,6 +746,8 @@
                 leave: leaveCount,
                 discipline: disciplineCount,
                 other: otherCount,
+                filtered: filteredCount,
+                totalRecords: appointmentData.length,
                 exceptions: createdExceptions
             });
         }
@@ -743,15 +757,23 @@
             const resultDiv = document.getElementById('appointmentAnalysisResult');
             const contentDiv = document.getElementById('appointmentAnalysisContent');
 
+            // 필터링 정보 표시
+            const filteredInfo = result.filtered ? `
+                <div style="padding: var(--spacing-sm); background: var(--bg-primary); border-radius: var(--radius-sm); margin-bottom: var(--spacing-md); font-size: var(--font-size-sm); color: var(--text-secondary);">
+                    📊 전체 ${result.totalRecords.toLocaleString()}건 중 재직중인 전임교원 ${(result.totalRecords - result.filtered).toLocaleString()}건 분석 완료
+                    (퇴직자 및 비전임 ${result.filtered.toLocaleString()}건 제외)
+                </div>
+            ` : '';
+
             if (result.total === 0) {
-                contentDiv.innerHTML = `
+                contentDiv.innerHTML = filteredInfo + `
                     <p style="color: var(--text-secondary);">
                         새로운 예외 사항이 발견되지 않았습니다.<br>
                         (이미 등록된 항목이거나 사직/휴직/징계 기록이 없습니다)
                     </p>
                 `;
             } else {
-                let html = `
+                let html = filteredInfo + `
                     <div style="margin-bottom: var(--spacing-md);">
                         <strong>${result.total}건의 예외 사항이 자동으로 등록되었습니다.</strong>
                     </div>
