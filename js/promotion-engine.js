@@ -276,14 +276,16 @@ class PromotionEngine {
         // "조교수" + "최초임용" + 비정년트랙 아님
         for (const record of sortedAppointments) {
             const appointmentType = (record['발령구분'] || '').toString();
-            const rank = (record['발령직급'] || record['직급'] || '').toString();
+            const rank = (record['발령직급'] || '').toString();
 
             // 최초임용이고, 조교수이며, 비정년트랙이 아닌 경우
+            // 비정년트랙 표기: "조교수(비정년트랙)" 또는 "조교수.(비정년트랙)"
             if (appointmentType.includes('최초임용') &&
                 rank.includes('조교수') &&
-                !rank.includes('비정년트랙')) {
+                !rank.includes('비정년')) {
                 const appointmentDate = this.parseDate(record['발령시작일'] || record['발령일'] || record['발령일자']);
                 if (appointmentDate) {
+                    console.log('✓ 정년트랙 임용일:', teacher['성명'], DateUtils.formatDate(appointmentDate), '발령직급:', rank);
                     return appointmentDate;
                 }
             }
