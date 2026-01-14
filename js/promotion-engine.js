@@ -251,6 +251,49 @@ class PromotionEngine {
     }
 
     /**
+     * 정년트랙 임용일 찾기
+     *
+     * 발령사항에서 "조교수" 직급의 "최초임용" 발령 중 "비정년트랙"이 아닌 첫 발령일
+     *
+     * 제외 대상:
+     * - 조교, 전임코치 등 조교수 이전 경력
+     * - 조교수(비정년트랙) 경력
+     */
+    getTenureTrackAppointmentDate(teacher) {
+        const appointmentHistory = this.getAppointmentHistory(teacher);
+        if (!appointmentHistory || !appointmentHistory.appointments) {
+            // 발령사항이 없으면 교원현황의 전임교원 최초임용일 사용
+            return DateUtils.parseDate(this.getTeacherValue(teacher, '전임교원\n최초임용일'));
+        }
+
+        // 발령사항을 날짜순 정렬
+        const sortedAppointments = [...appointmentHistory.appointments].sort((a, b) => {
+            const dateA = this.parseDate(a['발령시작일'] || a['발령일'] || a['발령일자']) || new Date(0);
+            const dateB = this.parseDate(b['발령시작일'] || b['발령일'] || b['발령일자']) || new Date(0);
+            return dateA - dateB;
+        });
+
+        // "조교수" + "최초임용" + 비정년트랙 아님
+        for (const record of sortedAppointments) {
+            const appointmentType = (record['발령구분'] || '').toString();
+            const rank = (record['발령직급'] || record['직급'] || '').toString();
+
+            // 최초임용이고, 조교수이며, 비정년트랙이 아닌 경우
+            if (appointmentType.includes('최초임용') &&
+                rank.includes('조교수') &&
+                !rank.includes('비정년트랙')) {
+                const appointmentDate = this.parseDate(record['발령시작일'] || record['발령일'] || record['발령일자']);
+                if (appointmentDate) {
+                    return appointmentDate;
+                }
+            }
+        }
+
+        // 못 찾으면 교원현황의 전임교원 최초임용일 사용 (fallback)
+        return DateUtils.parseDate(this.getTeacherValue(teacher, '전임교원\n최초임용일'));
+    }
+
+    /**
      * 승진 자격일 계산
      */
     getPromotionEligibleDate(teacher) {
@@ -274,9 +317,10 @@ class PromotionEngine {
         let baseDate;
         if (currentRankKey === '부교수') {
             const currentRankDate = DateUtils.parseDate(this.getTeacherValue(teacher, '현직급\n승인일'));
-            baseDate = currentRankDate || DateUtils.parseDate(this.getTeacherValue(teacher, '전임교원\n최초임용일'));
+            baseDate = currentRankDate || this.getTenureTrackAppointmentDate(teacher);
         } else {
-            baseDate = DateUtils.parseDate(this.getTeacherValue(teacher, '전임교원\n최초임용일'));
+            // 조교수: 정년트랙 임용일 사용 (조교/코치/비정년트랙 경력 제외)
+            baseDate = this.getTenureTrackAppointmentDate(teacher);
         }
 
         if (!baseDate) return null;
