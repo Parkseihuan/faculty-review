@@ -350,38 +350,35 @@ class PromotionEngine {
     /**
      * 다음 승진일 계산 (당해 연도만)
      *
-     * 승진 자격일이 이미 지난 경우, 다음 승진 기회(4월/10월)를 자동 계산
-     * → 매 승진일마다 탈락한 것으로 간주하고 다음 기회를 제공
+     * 승진 자격일 이후의 해당 학년도 승진일(4월/10월) 중 기준일 이후의 첫 번째 승진일 반환
      *
-     * 예: 자격일 2023.08.15 → 2024.10.01 탈락 → 2025.04.01 탈락 → 2025.10.01 탈락 → 2026.04.01 재도전
+     * 예: 자격일 2023.08.15, 기준일 2026.01.14
+     * - 자격일 < 2026.04.01 이고 기준일 < 2026.04.01 → 2026.04.01 반환
+     * - 과거 탈락 여부는 예외 사항에서 관리 (특정 승진일만 제외)
+     *
+     * ※ 과거에 탈락했어도 자격일이 해당 승진일보다 이전이면 자동으로 대상자로 표시
      */
     getNextPromotionDate(teacher) {
         const eligibleDate = this.getPromotionEligibleDate(teacher);
         if (!eligibleDate) return null;
 
-        let promotionDate = this.adjustToPromotionDate(eligibleDate);
-        if (!promotionDate) return null;
-
         const baseYear = this.baseDate.getFullYear();
 
-        // 승진일이 기준일보다 이전이면, 다음 승진 기회를 자동으로 찾음
-        // (이전 승진일에 탈락한 것으로 간주)
-        while (promotionDate < this.baseDate) {
-            // 다음 승진일 계산 (교원인사규정 제16조: 4월 1일, 10월 1일)
-            if (promotionDate.getMonth() === 3) { // 4월 → 10월
-                promotionDate = new Date(promotionDate.getFullYear(), 9, 1);
-            } else { // 10월 → 다음년도 4월
-                promotionDate = new Date(promotionDate.getFullYear() + 1, 3, 1);
-            }
+        // 해당 학년도의 4월 1일과 10월 1일
+        const april1st = new Date(baseYear, 3, 1);
+        const october1st = new Date(baseYear, 9, 1);
 
-            // 당해 연도를 초과하면 null (다음 연도 이후 승진은 제외)
-            if (promotionDate.getFullYear() > baseYear) {
-                return null;
-            }
+        // 승진 자격일이 해당 승진일 이전이고, 기준일도 이전이면 대상자
+        if (eligibleDate <= april1st && this.baseDate <= april1st) {
+            return april1st;
         }
 
-        // 당해 연도 내의 다음 승진일 반환
-        return promotionDate;
+        if (eligibleDate <= october1st && this.baseDate <= october1st) {
+            return october1st;
+        }
+
+        // 당해 연도에 해당하는 승진일이 없음
+        return null;
     }
 
     /**
