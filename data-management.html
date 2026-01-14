@@ -30,9 +30,9 @@
             background: var(--bg-primary);
             border: 2px dashed var(--border-color);
             border-radius: var(--radius-md);
-            padding: var(--spacing-xl);
+            padding: var(--spacing-md);
             text-align: center;
-            margin-bottom: var(--spacing-xl);
+            margin-bottom: var(--spacing-md);
             cursor: pointer;
             transition: all 0.2s ease;
         }
@@ -52,14 +52,14 @@
         }
 
         .upload-icon {
-            font-size: 3rem;
-            margin-bottom: var(--spacing-md);
+            font-size: 2rem;
+            margin-bottom: var(--spacing-sm);
         }
 
         .upload-title {
-            font-size: var(--font-size-xl);
+            font-size: var(--font-size-lg);
             font-weight: 600;
-            margin-bottom: var(--spacing-sm);
+            margin-bottom: var(--spacing-xs);
         }
 
         .upload-description {
@@ -130,6 +130,19 @@
             padding: var(--spacing-xl);
             color: var(--text-muted);
         }
+
+        .upload-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: var(--spacing-md);
+            margin-bottom: var(--spacing-xl);
+        }
+
+        @media (max-width: 768px) {
+            .upload-grid {
+                grid-template-columns: 1fr;
+            }
+        }
     </style>
 </head>
 <body>
@@ -169,42 +182,44 @@
     </div>
 
     <div class="container">
-        <!-- 교원현황 파일 업로드 -->
-        <div class="card" style="margin-bottom: var(--spacing-xl);">
-            <div class="card-header">
-                <h3 class="card-title">📊 교원현황 데이터</h3>
-            </div>
-            <div class="card-body">
-                <div class="upload-section" id="uploadSection">
-                    <input type="file" id="fileInput" accept=".xlsx,.xls" onchange="loadExcelFile(event)">
-                    <div class="upload-icon">📊</div>
-                    <h3 class="upload-title">교원현황 엑셀 파일 업로드</h3>
-                    <p class="upload-description">
-                        클릭하거나 파일을 드래그하여 업로드하세요<br>
-                        <small>(지원 형식: .xlsx, .xls)</small>
-                    </p>
-                    <button class="btn btn-primary" onclick="document.getElementById('fileInput').click()">
-                        파일 선택
-                    </button>
-                    <div class="file-info" id="fileInfo">
-                        <strong id="fileName"></strong> - <span id="fileSize"></span>
+        <!-- 파일 업로드 그리드 -->
+        <div class="upload-grid">
+            <!-- 교원현황 파일 업로드 -->
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">📊 교원현황 데이터</h3>
+                </div>
+                <div class="card-body">
+                    <div class="upload-section" id="uploadSection">
+                        <input type="file" id="fileInput" accept=".xlsx,.xls" onchange="loadExcelFile(event)">
+                        <div class="upload-icon">📊</div>
+                        <h3 class="upload-title">교원현황 엑셀 파일 업로드</h3>
+                        <p class="upload-description">
+                            클릭하거나 파일을 드래그하여 업로드하세요<br>
+                            <small>(지원 형식: .xlsx, .xls)</small>
+                        </p>
+                        <button class="btn btn-primary" onclick="document.getElementById('fileInput').click()">
+                            파일 선택
+                        </button>
+                        <div class="file-info" id="fileInfo">
+                            <strong id="fileName"></strong> - <span id="fileSize"></span>
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
 
-        <!-- 발령사항 파일 업로드 -->
-        <div class="card" style="margin-bottom: var(--spacing-xl);">
-            <div class="card-header">
-                <h3 class="card-title">📋 교원 발령사항 현황</h3>
-            </div>
-            <div class="card-body">
-                <p style="color: var(--text-secondary); margin-bottom: var(--spacing-md);">
-                    발령사항 파일을 업로드하면 사직, 휴직, 징계 등의 정보를 자동으로 분석하여 승진 예외 사항에 등록합니다.
-                </p>
-                <div class="upload-section" id="appointmentUploadSection" style="margin-bottom: 0;">
-                    <input type="file" id="appointmentFileInput" accept=".xlsx,.xls" onchange="loadAppointmentFile(event)">
-                    <div class="upload-icon">📋</div>
+            <!-- 발령사항 파일 업로드 -->
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">📋 교원 발령사항 현황</h3>
+                </div>
+                <div class="card-body">
+                    <p style="color: var(--text-secondary); margin-bottom: var(--spacing-sm); font-size: var(--font-size-sm);">
+                        발령사항 파일을 업로드하면 사직, 휴직, 징계 등의 정보를 자동으로 분석하여 승진 예외 사항에 등록합니다.
+                    </p>
+                    <div class="upload-section" id="appointmentUploadSection" style="margin-bottom: 0;">
+                        <input type="file" id="appointmentFileInput" accept=".xlsx,.xls" onchange="loadAppointmentFile(event)">
+                        <div class="upload-icon">📋</div>
                     <h3 class="upload-title">발령사항 엑셀 파일 업로드</h3>
                     <p class="upload-description">
                         클릭하거나 파일을 드래그하여 업로드하세요<br>
@@ -223,6 +238,7 @@
                     <h4 style="margin-bottom: var(--spacing-sm);">분석 결과</h4>
                     <div id="appointmentAnalysisContent"></div>
                 </div>
+            </div>
             </div>
         </div>
 
