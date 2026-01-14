@@ -189,15 +189,16 @@ class PromotionEngine {
      * 교원의 임용 구분 확인 (2012.2.28 전/후)
      */
     getAppointmentType(teacher) {
-        const firstAppointment = DateUtils.parseDate(this.getTeacherValue(teacher, '전임교원\n최초임용일'));
-
-        if (!firstAppointment) return null;
-
         // 비정년트랙 확인
         const rank = teacher['직급'];
         if (rank && rank.includes('비정년')) {
             return 'non_tenure';
         }
+
+        // 정년트랙 임용일 사용 (조교/코치/비정년트랙 경력 제외)
+        const firstAppointment = this.getTenureTrackAppointmentDate(teacher);
+
+        if (!firstAppointment) return null;
 
         // 2012.3.1 기준으로 구분
         if (firstAppointment < this.CUTOFF_DATE) {
