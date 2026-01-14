@@ -96,7 +96,7 @@
         }
 
         .stat-number {
-            font-size: 2rem;
+            font-size: var(--font-size-stat);
             font-weight: 700;
             color: var(--color-primary);
             margin-bottom: var(--spacing-xs);
@@ -755,11 +755,13 @@
                 }
 
                 if (exceptionType) {
-                    // 중복 확인 (같은 이름+소속+유형이 이미 있는지)
+                    // 중복 확인 (같은 이름+소속+유형+승진일이 이미 있는지)
+                    const targetPromotionDate = exceptionType === 'resignation' ? null : (appointmentDate || null);
                     const isDuplicate = existingExceptions.some(ex =>
                         ex.name === name &&
                         (!ex.department || ex.department === department) &&
-                        ex.type === exceptionType
+                        ex.type === exceptionType &&
+                        ex.promotionDate === targetPromotionDate
                     );
 
                     if (!isDuplicate) {

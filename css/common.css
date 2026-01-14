@@ -56,6 +56,7 @@
     --font-size-xl: 1.25rem;
     --font-size-2xl: 1.5rem;
     --font-size-3xl: 1.875rem;
+    --font-size-stat: 2.5rem; /* 통계 카드 숫자용 */
 }
 
 body {
