@@ -349,24 +349,38 @@ class PromotionEngine {
 
     /**
      * 다음 승진일 계산 (당해 연도만)
+     *
+     * 승진 자격일이 이미 지난 경우, 다음 승진 기회(4월/10월)를 자동 계산
+     * → 매 승진일마다 탈락한 것으로 간주하고 다음 기회를 제공
+     *
+     * 예: 자격일 2023.08.15 → 2024.10.01 탈락 → 2025.04.01 탈락 → 2025.10.01 탈락 → 2026.04.01 재도전
      */
     getNextPromotionDate(teacher) {
         const eligibleDate = this.getPromotionEligibleDate(teacher);
         if (!eligibleDate) return null;
 
-        const promotionDate = this.adjustToPromotionDate(eligibleDate);
+        let promotionDate = this.adjustToPromotionDate(eligibleDate);
+        if (!promotionDate) return null;
 
-        // 기준일보다 이전이면 null (이미 지난 승진일)
-        if (promotionDate && promotionDate < this.baseDate) {
-            return null;
-        }
-
-        // 당해 연도를 초과하면 null (다음 연도 이후 승진은 제외)
         const baseYear = this.baseDate.getFullYear();
-        if (promotionDate && promotionDate.getFullYear() > baseYear) {
-            return null;
+
+        // 승진일이 기준일보다 이전이면, 다음 승진 기회를 자동으로 찾음
+        // (이전 승진일에 탈락한 것으로 간주)
+        while (promotionDate < this.baseDate) {
+            // 다음 승진일 계산 (교원인사규정 제16조: 4월 1일, 10월 1일)
+            if (promotionDate.getMonth() === 3) { // 4월 → 10월
+                promotionDate = new Date(promotionDate.getFullYear(), 9, 1);
+            } else { // 10월 → 다음년도 4월
+                promotionDate = new Date(promotionDate.getFullYear() + 1, 3, 1);
+            }
+
+            // 당해 연도를 초과하면 null (다음 연도 이후 승진은 제외)
+            if (promotionDate.getFullYear() > baseYear) {
+                return null;
+            }
         }
 
+        // 당해 연도 내의 다음 승진일 반환
         return promotionDate;
     }
 
