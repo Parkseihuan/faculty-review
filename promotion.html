@@ -645,6 +645,16 @@
                     <button class="btn btn-primary" onclick="addException()">예외 사항 추가</button>
                 </div>
 
+                <!-- 일괄 작업 버튼 -->
+                <div style="display: flex; gap: var(--spacing-sm); margin-bottom: var(--spacing-md); flex-wrap: wrap;">
+                    <button class="btn btn-outline" onclick="deleteExceptionsByType('leave')" style="font-size: var(--font-size-sm);">
+                        🗑️ 휴직 예외 일괄 삭제
+                    </button>
+                    <button class="btn btn-outline" onclick="deleteExceptionsByType('all')" style="font-size: var(--font-size-sm); color: var(--color-danger); border-color: var(--color-danger);">
+                        ⚠️ 전체 예외 삭제
+                    </button>
+                </div>
+
                 <!-- 예외 목록 -->
                 <div id="exceptionsList">
                     <p class="text-center text-muted p-3">등록된 예외 사항이 없습니다.</p>
@@ -1171,6 +1181,47 @@
             if (facultyData.length > 0) {
                 calculatePromotions();
             }
+        }
+
+        // 유형별 예외 일괄 삭제
+        function deleteExceptionsByType(type) {
+            const exceptions = promotionEngine.getExceptions();
+
+            if (type === 'all') {
+                if (!confirm(`전체 ${exceptions.length}건의 예외 사항을 모두 삭제하시겠습니까?\n\n이 작업은 되돌릴 수 없습니다.`)) {
+                    return;
+                }
+                promotionEngine.saveExceptions([]);
+            } else {
+                const typeLabels = {
+                    'leave': '휴직',
+                    'resignation': '사직',
+                    'failed': '승진 탈락',
+                    'discipline': '징계'
+                };
+                const targetCount = exceptions.filter(e => e.type === type).length;
+
+                if (targetCount === 0) {
+                    alert(`삭제할 ${typeLabels[type] || type} 예외가 없습니다.`);
+                    return;
+                }
+
+                if (!confirm(`${typeLabels[type] || type} 유형의 예외 ${targetCount}건을 모두 삭제하시겠습니까?`)) {
+                    return;
+                }
+
+                const filtered = exceptions.filter(e => e.type !== type);
+                promotionEngine.saveExceptions(filtered);
+            }
+
+            loadExceptionsList();
+
+            // 승진 대상자 재계산
+            if (facultyData.length > 0) {
+                calculatePromotions();
+            }
+
+            alert('삭제가 완료되었습니다.');
         }
 
         // 예외 활성화/비활성화 토글
