@@ -719,7 +719,6 @@
 
             let createdExceptions = [];
             let resignationCount = 0;
-            let leaveCount = 0;
             let disciplineCount = 0;
             let otherCount = 0;
             let filteredCount = 0;
@@ -752,11 +751,9 @@
                     exceptionType = 'resignation';
                     resignationCount++;
                 }
-                // 휴직 관련
-                else if (typeStr.includes('휴직')) {
-                    exceptionType = 'leave';
-                    leaveCount++;
-                }
+                // 휴직은 예외로 등록하지 않음
+                // → 휴직 기간은 promotion-engine.js의 calculateLeaveMonths()에서
+                //   승진 예정일에 자동으로 가산 처리됨 (교원인사규정 제15조)
                 // 징계 관련
                 else if (typeStr.includes('징계') || typeStr.includes('정직') || typeStr.includes('감봉')) {
                     exceptionType = 'discipline';
@@ -787,12 +784,6 @@
 
                         existingExceptions.push(exception);
                         createdExceptions.push(exception);
-
-                        if (exceptionType !== 'resignation') {
-                            if (exceptionType === 'leave') leaveCount++;
-                            else if (exceptionType === 'discipline') disciplineCount++;
-                            else otherCount++;
-                        }
                     }
                 }
             });
@@ -804,7 +795,6 @@
             showAnalysisResult({
                 total: createdExceptions.length,
                 resignation: resignationCount,
-                leave: leaveCount,
                 discipline: disciplineCount,
                 other: otherCount,
                 filtered: filteredCount,
@@ -830,22 +820,24 @@
                 contentDiv.innerHTML = filteredInfo + `
                     <p style="color: var(--text-secondary);">
                         새로운 예외 사항이 발견되지 않았습니다.<br>
-                        (이미 등록된 항목이거나 사직/휴직/징계 기록이 없습니다)
+                        (이미 등록된 항목이거나 사직/징계 기록이 없습니다)
+                    </p>
+                    <p style="color: var(--text-muted); font-size: var(--font-size-sm);">
+                        ※ 휴직 기간은 예외가 아닌 승진예정일 자동 가산으로 처리됩니다.
                     </p>
                 `;
             } else {
                 let html = filteredInfo + `
                     <div style="margin-bottom: var(--spacing-md);">
                         <strong>${result.total}건의 예외 사항이 자동으로 등록되었습니다.</strong>
+                        <p style="color: var(--text-muted); font-size: var(--font-size-sm); margin-top: var(--spacing-xs);">
+                            ※ 휴직 기간은 예외가 아닌 승진예정일 자동 가산으로 처리됩니다.
+                        </p>
                     </div>
                     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: var(--spacing-sm); margin-bottom: var(--spacing-md);">
                         <div style="padding: var(--spacing-sm); background: white; border-radius: var(--radius-sm); text-align: center;">
                             <div style="font-size: var(--font-size-xl); font-weight: 600; color: var(--color-danger);">${result.resignation}</div>
                             <div style="font-size: var(--font-size-sm); color: var(--text-secondary);">사직서 제출</div>
-                        </div>
-                        <div style="padding: var(--spacing-sm); background: white; border-radius: var(--radius-sm); text-align: center;">
-                            <div style="font-size: var(--font-size-xl); font-weight: 600; color: var(--color-warning);">${result.leave}</div>
-                            <div style="font-size: var(--font-size-sm); color: var(--text-secondary);">휴직</div>
                         </div>
                         <div style="padding: var(--spacing-sm); background: white; border-radius: var(--radius-sm); text-align: center;">
                             <div style="font-size: var(--font-size-xl); font-weight: 600; color: var(--color-primary);">${result.discipline}</div>
