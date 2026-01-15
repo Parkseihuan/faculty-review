@@ -410,12 +410,21 @@
                         return obj;
                     });
 
-                    // 재직중인 전임교원만 필터링
+                    // 재직중인 전임교원만 필터링 (연구년, 휴직 등 포함, 퇴직자 제외)
                     facultyData = jsonData.filter(teacher => {
-                        const workStatus = teacher['재직구분'];
+                        const workStatus = (teacher['재직구분'] || '').toString().trim();
                         const position = teacher['직렬'];
-                        return workStatus && workStatus.toString().includes('재직') &&
-                               position && position.toString().includes('전임교원');
+
+                        // 퇴직자 제외 (퇴직, 의원면직, 사망 등)
+                        const isRetired = workStatus.includes('퇴직') ||
+                                         workStatus.includes('면직') ||
+                                         workStatus.includes('사망') ||
+                                         workStatus === '';
+
+                        // 전임교원만 포함
+                        const isFullTime = position && position.toString().includes('전임교원');
+
+                        return !isRetired && isFullTime;
                     });
 
                     if (facultyData.length === 0) {
