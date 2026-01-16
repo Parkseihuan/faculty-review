@@ -624,14 +624,17 @@
                             <option value="failed">승진 탈락 (특정 승진일만 제외)</option>
                             <option value="leave">휴직 (특정 승진일만 제외)</option>
                             <option value="discipline">징계 (특정 승진일만 제외)</option>
-                            <option value="other">기타</option>
+                            <option value="other">기타 (승진일 선택 가능)</option>
                         </select>
                     </div>
                     <div class="form-group" id="promotionDateGroup" style="display: none;">
-                        <label class="form-label">적용 승진일 (이 승진일에만 제외) *</label>
+                        <label class="form-label">적용 승진일 <span id="promotionDateRequired">*</span></label>
                         <input type="date" id="exceptionPromotionDate" class="form-control">
-                        <small style="color: var(--text-muted); font-size: var(--font-size-sm);">
-                            승진 탈락, 휴직 등의 경우 제외할 특정 승진일을 지정하세요. (예: 2025-10-01)
+                        <small id="promotionDateHelp" style="color: var(--text-muted); font-size: var(--font-size-sm);">
+                            제외할 특정 승진일을 지정하세요. (예: 2025-10-01)
+                        </small>
+                        <small id="promotionDateOptional" style="color: var(--text-muted); font-size: var(--font-size-sm); display: none;">
+                            비워두면 영구 제외로 처리됩니다.
                         </small>
                     </div>
                     <div class="form-group">
@@ -998,12 +1001,26 @@
             const type = document.getElementById('exceptionType').value;
             const promotionDateGroup = document.getElementById('promotionDateGroup');
             const promotionDateInput = document.getElementById('exceptionPromotionDate');
+            const requiredSpan = document.getElementById('promotionDateRequired');
+            const helpText = document.getElementById('promotionDateHelp');
+            const optionalText = document.getElementById('promotionDateOptional');
 
-            // 사직(resignation)과 기타(other)는 영구 제외이므로 승진일 불필요
             if (type === 'failed' || type === 'leave' || type === 'discipline') {
+                // 승진 탈락, 휴직, 징계: 승진일 필수
                 promotionDateGroup.style.display = 'block';
                 promotionDateInput.required = true;
+                requiredSpan.style.display = 'inline';
+                helpText.style.display = 'block';
+                optionalText.style.display = 'none';
+            } else if (type === 'other') {
+                // 기타: 승진일 선택 가능 (비워두면 영구 제외)
+                promotionDateGroup.style.display = 'block';
+                promotionDateInput.required = false;
+                requiredSpan.style.display = 'none';
+                helpText.style.display = 'none';
+                optionalText.style.display = 'block';
             } else {
+                // 사직: 승진일 불필요 (영구 제외)
                 promotionDateGroup.style.display = 'none';
                 promotionDateInput.required = false;
                 promotionDateInput.value = '';
@@ -1147,6 +1164,9 @@
                                 <div style="color: var(--text-muted); font-size: var(--font-size-xs); margin-top: var(--spacing-xs);">등록일: ${dateStr}</div>
                             </div>
                             <div style="display: flex; gap: var(--spacing-xs);">
+                                <button class="btn btn-sm btn-outline" onclick="editException(${index})" title="수정">
+                                    ✏️
+                                </button>
                                 <button class="btn btn-sm btn-outline" onclick="toggleException(${index})" title="${exception.isActive ? '비활성화' : '활성화'}">
                                     ${exception.isActive ? '⏸️' : '▶️'}
                                 </button>
@@ -1180,6 +1200,122 @@
             // 승진 대상자 재계산
             if (facultyData.length > 0) {
                 calculatePromotions();
+            }
+        }
+
+        // 예외 수정
+        let editingExceptionIndex = null;
+
+        function editException(index) {
+            const exceptions = promotionEngine.getExceptions();
+            const exception = exceptions[index];
+
+            // 폼에 기존 값 채우기
+            document.getElementById('exceptionDepartment').value = exception.department || '';
+            document.getElementById('exceptionName').value = exception.name || '';
+            document.getElementById('exceptionType').value = exception.type || '';
+            document.getElementById('exceptionReason').value = exception.reason || '';
+            document.getElementById('exceptionNote').value = exception.note || '';
+
+            // 승진일 필드 표시
+            togglePromotionDateField();
+
+            // 승진일 값 설정
+            if (exception.promotionDate) {
+                document.getElementById('exceptionPromotionDate').value = exception.promotionDate;
+            }
+
+            // 수정 모드로 전환
+            editingExceptionIndex = index;
+
+            // 버튼 텍스트 변경
+            const addBtn = document.querySelector('#tab-exceptions .btn-primary');
+            addBtn.textContent = '예외 사항 수정';
+            addBtn.onclick = saveEditedException;
+
+            // 취소 버튼 추가
+            if (!document.getElementById('cancelEditBtn')) {
+                const cancelBtn = document.createElement('button');
+                cancelBtn.id = 'cancelEditBtn';
+                cancelBtn.className = 'btn btn-outline';
+                cancelBtn.textContent = '취소';
+                cancelBtn.style.marginLeft = 'var(--spacing-sm)';
+                cancelBtn.onclick = cancelEdit;
+                addBtn.parentNode.appendChild(cancelBtn);
+            }
+
+            // 폼으로 스크롤
+            document.getElementById('exceptionDepartment').focus();
+        }
+
+        function saveEditedException() {
+            if (editingExceptionIndex === null) return;
+
+            const department = document.getElementById('exceptionDepartment').value.trim();
+            const name = document.getElementById('exceptionName').value.trim();
+            const type = document.getElementById('exceptionType').value;
+            const promotionDate = document.getElementById('exceptionPromotionDate').value;
+            const reason = document.getElementById('exceptionReason').value.trim();
+            const note = document.getElementById('exceptionNote').value.trim();
+
+            if (!department || !name || !type) {
+                alert('소속학과, 성명, 예외 유형은 필수입니다.');
+                return;
+            }
+
+            // 승진 탈락, 휴직, 징계의 경우 승진일 필수
+            if ((type === 'failed' || type === 'leave' || type === 'discipline') && !promotionDate) {
+                alert('적용 승진일을 선택하세요.');
+                return;
+            }
+
+            const exceptions = promotionEngine.getExceptions();
+            const exception = exceptions[editingExceptionIndex];
+
+            // 기존 값 업데이트
+            exception.department = department;
+            exception.name = name;
+            exception.type = type;
+            exception.promotionDate = promotionDate || null;
+            exception.reason = reason;
+            exception.note = note;
+
+            promotionEngine.saveExceptions(exceptions);
+
+            // 수정 모드 종료
+            cancelEdit();
+
+            loadExceptionsList();
+
+            // 승진 대상자 재계산
+            if (facultyData.length > 0) {
+                calculatePromotions();
+            }
+
+            alert('예외 사항이 수정되었습니다.');
+        }
+
+        function cancelEdit() {
+            editingExceptionIndex = null;
+
+            // 폼 초기화
+            document.getElementById('exceptionDepartment').value = '';
+            document.getElementById('exceptionName').value = '';
+            document.getElementById('exceptionType').value = '';
+            document.getElementById('exceptionPromotionDate').value = '';
+            document.getElementById('exceptionReason').value = '';
+            document.getElementById('exceptionNote').value = '';
+            togglePromotionDateField();
+
+            // 버튼 원래대로
+            const addBtn = document.querySelector('#tab-exceptions .btn-primary');
+            addBtn.textContent = '예외 사항 추가';
+            addBtn.onclick = addException;
+
+            // 취소 버튼 제거
+            const cancelBtn = document.getElementById('cancelEditBtn');
+            if (cancelBtn) {
+                cancelBtn.remove();
             }
         }
 
