@@ -205,6 +205,12 @@
                             <strong id="fileName"></strong> - <span id="fileSize"></span>
                         </div>
                     </div>
+
+                    <!-- 분석 결과 -->
+                    <div id="facultyAnalysisResult" style="display: none; margin-top: var(--spacing-md); padding: var(--spacing-md); background: var(--bg-secondary); border-radius: var(--radius-md);">
+                        <h4 style="margin-bottom: var(--spacing-sm);">분석 결과</h4>
+                        <div id="facultyAnalysisContent"></div>
+                    </div>
                 </div>
             </div>
 
@@ -331,13 +337,48 @@
 
         // 페이지 로드 시 저장된 데이터 복원
         document.addEventListener('DOMContentLoaded', function() {
+            // 저장된 교원현황 데이터 로드
             const savedData = StorageUtils.get('facultyData');
-            if (savedData) {
+            if (savedData && savedData.length > 0) {
                 facultyData = savedData;
                 filteredData = [...facultyData];
                 updateUI();
+                showSavedDataStatus('faculty', savedData.length);
+            }
+
+            // 저장된 발령사항 데이터 상태 표시
+            const savedAppointmentData = StorageUtils.get('appointmentData');
+            if (savedAppointmentData && savedAppointmentData.length > 0) {
+                showSavedDataStatus('appointment', savedAppointmentData.length);
             }
         });
+
+        // 저장된 데이터 상태 표시
+        function showSavedDataStatus(type, count) {
+            if (type === 'faculty') {
+                const resultDiv = document.getElementById('facultyAnalysisResult');
+                const contentDiv = document.getElementById('facultyAnalysisContent');
+
+                contentDiv.innerHTML = `
+                    <div style="padding: var(--spacing-sm); background: var(--bg-primary); border-radius: var(--radius-sm); color: var(--text-secondary);">
+                        ✓ 이전에 업로드한 교원현황 데이터 <strong>${count.toLocaleString()}명</strong>이 저장되어 있습니다.
+                        <br><small style="color: var(--text-muted);">새 파일을 업로드하면 기존 데이터가 교체됩니다.</small>
+                    </div>
+                `;
+                resultDiv.style.display = 'block';
+            } else if (type === 'appointment') {
+                const resultDiv = document.getElementById('appointmentAnalysisResult');
+                const contentDiv = document.getElementById('appointmentAnalysisContent');
+
+                contentDiv.innerHTML = `
+                    <div style="padding: var(--spacing-sm); background: var(--bg-primary); border-radius: var(--radius-sm); color: var(--text-secondary);">
+                        ✓ 이전에 업로드한 발령사항 데이터 <strong>${count.toLocaleString()}건</strong>이 저장되어 있습니다.
+                        <br><small style="color: var(--text-muted);">새 파일을 업로드하면 기존 데이터가 교체됩니다.</small>
+                    </div>
+                `;
+                resultDiv.style.display = 'block';
+            }
+        }
 
         // 헤더명 정규화
         function getTeacherValue(teacher, fieldName) {
@@ -438,7 +479,7 @@
                     StorageUtils.set('facultyData', facultyData);
 
                     updateUI();
-                    alert(`데이터가 성공적으로 업로드되었습니다.\n전임교원 ${facultyData.length}명의 정보가 저장되었습니다.`);
+                    showFacultyAnalysisResult(jsonData.length, facultyData);
 
                 } catch (error) {
                     console.error('파일 처리 오류:', error);
@@ -491,6 +532,71 @@
             document.getElementById('dataPreview').style.display = 'block';
 
             updateTable();
+        }
+
+        // 교원현황 분석 결과 표시
+        function showFacultyAnalysisResult(totalRecords, filteredData) {
+            const resultDiv = document.getElementById('facultyAnalysisResult');
+            const contentDiv = document.getElementById('facultyAnalysisContent');
+
+            // 통계 계산
+            let tenureCount = 0;
+            let nonTenureCount = 0;
+            let professorCount = 0;
+            let associateCount = 0;
+            let assistantCount = 0;
+
+            filteredData.forEach(teacher => {
+                const rank = teacher['직급'] || '';
+                if (rank.includes('비정년')) {
+                    nonTenureCount++;
+                } else {
+                    tenureCount++;
+                }
+                if (rank.includes('교수') && !rank.includes('조교수') && !rank.includes('부교수')) {
+                    professorCount++;
+                } else if (rank.includes('부교수')) {
+                    associateCount++;
+                } else if (rank.includes('조교수')) {
+                    assistantCount++;
+                }
+            });
+
+            const excludedCount = totalRecords - filteredData.length;
+
+            contentDiv.innerHTML = `
+                <div style="padding: var(--spacing-sm); background: var(--bg-primary); border-radius: var(--radius-sm); margin-bottom: var(--spacing-md); font-size: var(--font-size-sm); color: var(--text-secondary);">
+                    📊 전체 ${totalRecords.toLocaleString()}건 중 재직중인 전임교원 <strong>${filteredData.length.toLocaleString()}건</strong> 분석 완료
+                    (퇴직자 및 비전임 ${excludedCount.toLocaleString()}건 제외)
+                </div>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); gap: var(--spacing-sm);">
+                    <div style="padding: var(--spacing-sm); background: white; border-radius: var(--radius-sm); text-align: center;">
+                        <div style="font-size: var(--font-size-xl); font-weight: 600; color: var(--color-primary);">${tenureCount}</div>
+                        <div style="font-size: var(--font-size-sm); color: var(--text-secondary);">정년트랙</div>
+                    </div>
+                    <div style="padding: var(--spacing-sm); background: white; border-radius: var(--radius-sm); text-align: center;">
+                        <div style="font-size: var(--font-size-xl); font-weight: 600; color: var(--color-warning);">${nonTenureCount}</div>
+                        <div style="font-size: var(--font-size-sm); color: var(--text-secondary);">비정년트랙</div>
+                    </div>
+                    <div style="padding: var(--spacing-sm); background: white; border-radius: var(--radius-sm); text-align: center;">
+                        <div style="font-size: var(--font-size-xl); font-weight: 600; color: var(--color-success);">${professorCount}</div>
+                        <div style="font-size: var(--font-size-sm); color: var(--text-secondary);">교수</div>
+                    </div>
+                    <div style="padding: var(--spacing-sm); background: white; border-radius: var(--radius-sm); text-align: center;">
+                        <div style="font-size: var(--font-size-xl); font-weight: 600; color: var(--text-primary);">${associateCount}</div>
+                        <div style="font-size: var(--font-size-sm); color: var(--text-secondary);">부교수</div>
+                    </div>
+                    <div style="padding: var(--spacing-sm); background: white; border-radius: var(--radius-sm); text-align: center;">
+                        <div style="font-size: var(--font-size-xl); font-weight: 600; color: var(--text-primary);">${assistantCount}</div>
+                        <div style="font-size: var(--font-size-sm); color: var(--text-secondary);">조교수</div>
+                    </div>
+                </div>
+                <p style="color: var(--text-muted); font-size: var(--font-size-sm); margin-top: var(--spacing-md);">
+                    ✓ 데이터가 로컬 스토리지에 저장되었습니다. 다른 탭에서 사용 가능합니다.
+                </p>
+            `;
+
+            resultDiv.style.display = 'block';
         }
 
         // 테이블 업데이트

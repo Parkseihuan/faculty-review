@@ -264,9 +264,53 @@ const ValidationUtils = {
     }
 };
 
+// ===== 네비게이션 유틸리티 =====
+const NavUtils = {
+    /**
+     * 현재 페이지에 맞는 네비게이션 링크 활성화
+     */
+    initActiveLink() {
+        const currentPage = window.location.pathname.split('/').pop() || 'index.html';
+        const navLinks = document.querySelectorAll('.navbar-link');
+
+        navLinks.forEach(link => {
+            const href = link.getAttribute('href');
+            if (href === currentPage ||
+                (currentPage === '' && href === 'index.html') ||
+                (currentPage === 'index.html' && href === 'index.html')) {
+                link.classList.add('active');
+            } else {
+                link.classList.remove('active');
+            }
+        });
+    },
+
+    /**
+     * 모바일 메뉴 토글 초기화
+     */
+    initMobileMenu() {
+        const toggle = document.querySelector('.navbar-toggle');
+        const menu = document.querySelector('.navbar-menu');
+
+        if (toggle && menu) {
+            toggle.addEventListener('click', () => {
+                toggle.classList.toggle('active');
+                menu.classList.toggle('active');
+            });
+        }
+    }
+};
+
+// ===== 페이지 로드 시 초기화 =====
+document.addEventListener('DOMContentLoaded', () => {
+    NavUtils.initActiveLink();
+    NavUtils.initMobileMenu();
+});
+
 // ===== 전역 객체로 내보내기 =====
 window.DateUtils = DateUtils;
 window.StorageUtils = StorageUtils;
 window.UIUtils = UIUtils;
 window.FileUtils = FileUtils;
 window.ValidationUtils = ValidationUtils;
+window.NavUtils = NavUtils;
