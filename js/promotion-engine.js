@@ -41,6 +41,9 @@
  * ================================================================================================
  */
 
+// 디버그 모드 (false로 설정하면 console.log 비활성화)
+const PROMOTION_DEBUG = false;
+
 class PromotionEngine {
     constructor(baseDate = new Date()) {
         this.baseDate = new Date(baseDate.getFullYear(), baseDate.getMonth(), baseDate.getDate());
@@ -135,7 +138,7 @@ class PromotionEngine {
             }
         });
 
-        console.log('휴직 기간 계산:', teacher['성명'], totalLeaveMonths, '개월');
+        PROMOTION_DEBUG && console.log('휴직 기간 계산:', teacher['성명'], totalLeaveMonths, '개월');
         return totalLeaveMonths;
     }
 
@@ -286,7 +289,7 @@ class PromotionEngine {
                 !rank.includes('비정년')) {
                 const appointmentDate = this.parseDate(record['발령시작일'] || record['발령일'] || record['발령일자']);
                 if (appointmentDate) {
-                    console.log('✓ 정년트랙 임용일:', teacher['성명'], DateUtils.formatDate(appointmentDate), '발령직급:', rank);
+                    PROMOTION_DEBUG && console.log('✓ 정년트랙 임용일:', teacher['성명'], DateUtils.formatDate(appointmentDate), '발령직급:', rank);
                     return appointmentDate;
                 }
             }
@@ -326,7 +329,7 @@ class PromotionEngine {
                 rank.includes('비정년')) {
                 const appointmentDate = this.parseDate(record['발령시작일'] || record['발령일'] || record['발령일자']);
                 if (appointmentDate) {
-                    console.log('✓ 비정년트랙 임용일:', teacher['성명'], DateUtils.formatDate(appointmentDate), '발령직급:', rank);
+                    PROMOTION_DEBUG && console.log('✓ 비정년트랙 임용일:', teacher['성명'], DateUtils.formatDate(appointmentDate), '발령직급:', rank);
                     return appointmentDate;
                 }
             }
@@ -397,12 +400,12 @@ class PromotionEngine {
             // 정년트랙 교원: 휴직 기간 가산
             if (leaveMonths > 0) {
                 eligibleDate.setMonth(eligibleDate.getMonth() + leaveMonths);
-                console.log('✓ 휴직 기간 반영 (정년트랙):', teacher['성명'], leaveMonths, '개월 →', DateUtils.formatDate(eligibleDate));
+                PROMOTION_DEBUG && console.log('✓ 휴직 기간 반영 (정년트랙):', teacher['성명'], leaveMonths, '개월 →', DateUtils.formatDate(eligibleDate));
             }
         } else {
             // 비정년트랙 교원: 휴직 기간 미반영
             if (leaveMonths > 0) {
-                console.log('ℹ 휴직 기간 미반영 (비정년트랙):', teacher['성명'], leaveMonths, '개월 - 임용계약 기반으로 가산 제외');
+                PROMOTION_DEBUG && console.log('ℹ 휴직 기간 미반영 (비정년트랙):', teacher['성명'], leaveMonths, '개월 - 임용계약 기반으로 가산 제외');
             }
         }
 
@@ -574,7 +577,7 @@ class PromotionEngine {
 
         // 교수가 아닌 조교수, 부교수만 대상
         if (!rank) {
-            console.log('직급 없음:', teacher['성명']);
+            PROMOTION_DEBUG && console.log('직급 없음:', teacher['성명']);
             return false;
         }
 
@@ -586,14 +589,14 @@ class PromotionEngine {
         // 2. 다음 승진일 계산
         const nextPromotionDate = providedPromotionDate || this.getNextPromotionDate(teacher);
         if (!nextPromotionDate) {
-            console.log('승진일 없음:', teacher['성명'], rank);
+            PROMOTION_DEBUG && console.log('승진일 없음:', teacher['성명'], rank);
             return false;
         }
 
         // 0. 예외 사항 확인 (최우선, 승진일 계산 후)
         const exception = this.checkException(teacher, nextPromotionDate);
         if (exception.hasException) {
-            console.log('❌ 예외 사항:', teacher['성명'], exception.type, exception.appliesTo, exception.reason);
+            PROMOTION_DEBUG && console.log('❌ 예외 사항:', teacher['성명'], exception.type, exception.appliesTo, exception.reason);
             return false;
         }
 
@@ -603,7 +606,7 @@ class PromotionEngine {
             return false;
         }
 
-        console.log('✅ 승진 대상자:', teacher['성명'], rank, '→ 승진일:', this.adjustToPromotionDate(nextPromotionDate));
+        PROMOTION_DEBUG && console.log('✅ 승진 대상자:', teacher['성명'], rank, '→ 승진일:', this.adjustToPromotionDate(nextPromotionDate));
         return true;
     }
 
@@ -684,8 +687,8 @@ class PromotionEngine {
      * 모든 교원의 승진 정보 계산
      */
     calculateAllPromotions(facultyData) {
-        console.log('=== 승진 대상자 계산 시작 ===');
-        console.log('전체 교원 수:', facultyData.length);
+        PROMOTION_DEBUG && console.log('=== 승진 대상자 계산 시작 ===');
+        PROMOTION_DEBUG && console.log('전체 교원 수:', facultyData.length);
 
         // 직급별 통계
         const rankStats = {};
@@ -693,15 +696,15 @@ class PromotionEngine {
             const rank = t['직급'] || '직급없음';
             rankStats[rank] = (rankStats[rank] || 0) + 1;
         });
-        console.log('직급별 통계:', rankStats);
+        PROMOTION_DEBUG && console.log('직급별 통계:', rankStats);
 
         const results = facultyData.map(teacher => ({
             teacher,
             promotionInfo: this.getPromotionInfo(teacher)
         })).filter(item => item.promotionInfo.isCandidate);
 
-        console.log('최종 승진 대상자 수:', results.length);
-        console.log('=== 승진 대상자 계산 완료 ===');
+        PROMOTION_DEBUG && console.log('최종 승진 대상자 수:', results.length);
+        PROMOTION_DEBUG && console.log('=== 승진 대상자 계산 완료 ===');
 
         return results;
     }
