@@ -565,6 +565,7 @@
             <div class="tabs-nav no-print">
                 <button class="tab-button active" onclick="switchTab('candidates')">📋 승진 대상자 목록</button>
                 <button class="tab-button" onclick="switchTab('exceptions')">⚙️ 예외 사항 관리</button>
+                <button class="tab-button" onclick="switchTab('discipline')">⚖️ 징계처분 관리</button>
             </div>
 
             <!-- 탭1: 승진 대상자 목록 -->
@@ -665,6 +666,62 @@
             </div>
         </div>
             </div>
+
+            <!-- 탭3: 징계처분 관리 -->
+            <div id="tab-discipline" class="tab-content">
+                <div class="card no-print">
+                    <div class="card-header">
+                        <h3 class="card-title">징계처분 관리</h3>
+                    </div>
+                    <div class="card-body">
+                        <p style="color: var(--text-secondary); margin-bottom: var(--spacing-md);">
+                            교원인사규정 제15조의2에 따라 징계처분을 받은 교원은 일정 기간 승진이 제한됩니다.<br>
+                            <strong>정직: 18개월, 감봉: 12개월, 견책: 6개월</strong> (징계 종료일로부터)
+                        </p>
+
+                        <!-- 징계 추가 폼 -->
+                        <div style="background: var(--bg-secondary); padding: var(--spacing-md); border-radius: var(--radius-md); margin-bottom: var(--spacing-md);">
+                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: var(--spacing-md);">
+                                <div class="form-group">
+                                    <label class="form-label">소속학과 *</label>
+                                    <input type="text" id="disciplineDepartment" class="form-control" placeholder="예: 체육학과">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">성명 *</label>
+                                    <input type="text" id="disciplineName" class="form-control" placeholder="예: 홍길동">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">징계 종류 *</label>
+                                    <select id="disciplineType" class="form-control">
+                                        <option value="">선택하세요</option>
+                                        <option value="suspension">정직 (승진제한 18개월)</option>
+                                        <option value="salary_reduction">감봉 (승진제한 12개월)</option>
+                                        <option value="reprimand">견책 (승진제한 6개월)</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">징계 시작일 *</label>
+                                    <input type="date" id="disciplineStartDate" class="form-control">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">징계 종료일 *</label>
+                                    <input type="date" id="disciplineEndDate" class="form-control">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">비고</label>
+                                <textarea id="disciplineNote" class="form-control" rows="2" placeholder="추가 상세 정보"></textarea>
+                            </div>
+                            <button class="btn btn-primary" onclick="addDiscipline()">징계처분 등록</button>
+                        </div>
+
+                        <!-- 징계 목록 -->
+                        <div id="disciplineList">
+                            <p class="text-center text-muted p-3">등록된 징계처분이 없습니다.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <!-- 인쇄용 헤더 (화면에서는 숨김) -->
@@ -698,6 +755,7 @@
         document.addEventListener('DOMContentLoaded', function() {
             setToday();
             loadExceptionsList();
+            loadDisciplineList();
         });
 
         // 탭 전환 함수
@@ -1603,6 +1661,187 @@
                 });
             }
         });
+
+        // ===== 징계처분 관리 함수 =====
+
+        const DISCIPLINE_KEY = 'disciplineRecords';
+
+        // 징계 종류별 승진 제한 기간 (개월)
+        const DISCIPLINE_RESTRICTION_MONTHS = {
+            'suspension': 18,      // 정직
+            'salary_reduction': 12, // 감봉
+            'reprimand': 6          // 견책
+        };
+
+        const DISCIPLINE_LABELS = {
+            'suspension': '정직',
+            'salary_reduction': '감봉',
+            'reprimand': '견책'
+        };
+
+        // 징계 목록 로드
+        function loadDisciplineList() {
+            const disciplines = getDisciplines();
+            const container = document.getElementById('disciplineList');
+
+            if (disciplines.length === 0) {
+                container.innerHTML = '<p class="text-center text-muted p-3">등록된 징계처분이 없습니다.</p>';
+                return;
+            }
+
+            let html = '<div style="display: flex; flex-direction: column; gap: var(--spacing-sm);">';
+
+            disciplines.forEach((discipline, index) => {
+                const typeLabel = DISCIPLINE_LABELS[discipline.type] || discipline.type;
+                const restrictionMonths = DISCIPLINE_RESTRICTION_MONTHS[discipline.type] || 0;
+                const endDate = new Date(discipline.endDate);
+                const restrictionEndDate = new Date(endDate);
+                restrictionEndDate.setMonth(restrictionEndDate.getMonth() + restrictionMonths);
+
+                const today = new Date();
+                const isRestricted = today < restrictionEndDate;
+                const statusBadge = isRestricted
+                    ? '<span class="badge badge-danger">승진제한 중</span>'
+                    : '<span class="badge badge-success">제한 해제</span>';
+
+                html += `
+                    <div style="background: white; border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: var(--spacing-md);">
+                        <div style="display: flex; justify-content: space-between; align-items: start;">
+                            <div style="flex: 1;">
+                                <div style="font-weight: 600; font-size: var(--font-size-lg); margin-bottom: var(--spacing-xs);">
+                                    ${discipline.name} <span style="color: var(--text-secondary); font-weight: 400; font-size: var(--font-size-sm);">(${discipline.department})</span>
+                                </div>
+                                <div style="margin-bottom: var(--spacing-xs);">
+                                    <span class="badge badge-warning">${typeLabel}</span>
+                                    ${statusBadge}
+                                </div>
+                                <div style="color: var(--text-secondary); font-size: var(--font-size-sm); margin-bottom: var(--spacing-xs);">
+                                    징계기간: ${discipline.startDate} ~ ${discipline.endDate}
+                                </div>
+                                <div style="color: var(--text-secondary); font-size: var(--font-size-sm); margin-bottom: var(--spacing-xs);">
+                                    승진제한 해제일: <strong>${DateUtils.formatDate(restrictionEndDate)}</strong> (종료일 + ${restrictionMonths}개월)
+                                </div>
+                                ${discipline.note ? `<div style="color: var(--text-muted); font-size: var(--font-size-sm);">비고: ${discipline.note}</div>` : ''}
+                            </div>
+                            <div>
+                                <button class="btn btn-sm btn-danger" onclick="deleteDiscipline(${index})" title="삭제">
+                                    🗑️
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            html += '</div>';
+            container.innerHTML = html;
+        }
+
+        // 징계 추가
+        function addDiscipline() {
+            const department = document.getElementById('disciplineDepartment').value.trim();
+            const name = document.getElementById('disciplineName').value.trim();
+            const type = document.getElementById('disciplineType').value;
+            const startDate = document.getElementById('disciplineStartDate').value;
+            const endDate = document.getElementById('disciplineEndDate').value;
+            const note = document.getElementById('disciplineNote').value.trim();
+
+            if (!department || !name || !type || !startDate || !endDate) {
+                alert('소속학과, 성명, 징계 종류, 시작일, 종료일은 필수입니다.');
+                return;
+            }
+
+            const discipline = {
+                department,
+                name,
+                type,
+                startDate,
+                endDate,
+                note,
+                addedDate: new Date().toISOString()
+            };
+
+            const disciplines = getDisciplines();
+            disciplines.push(discipline);
+            saveDisciplines(disciplines);
+
+            // 폼 초기화
+            document.getElementById('disciplineDepartment').value = '';
+            document.getElementById('disciplineName').value = '';
+            document.getElementById('disciplineType').value = '';
+            document.getElementById('disciplineStartDate').value = '';
+            document.getElementById('disciplineEndDate').value = '';
+            document.getElementById('disciplineNote').value = '';
+
+            loadDisciplineList();
+
+            // 승진 대상자 재계산
+            if (facultyData.length > 0) {
+                calculatePromotions();
+            }
+
+            alert('징계처분이 등록되었습니다.');
+        }
+
+        // 징계 삭제
+        function deleteDiscipline(index) {
+            const disciplines = getDisciplines();
+            const discipline = disciplines[index];
+
+            if (!confirm(`${discipline.name} (${discipline.department})의 징계처분 기록을 삭제하시겠습니까?`)) {
+                return;
+            }
+
+            disciplines.splice(index, 1);
+            saveDisciplines(disciplines);
+
+            loadDisciplineList();
+
+            // 승진 대상자 재계산
+            if (facultyData.length > 0) {
+                calculatePromotions();
+            }
+        }
+
+        // 징계 목록 가져오기
+        function getDisciplines() {
+            const stored = localStorage.getItem(DISCIPLINE_KEY);
+            return stored ? JSON.parse(stored) : [];
+        }
+
+        // 징계 목록 저장
+        function saveDisciplines(disciplines) {
+            localStorage.setItem(DISCIPLINE_KEY, JSON.stringify(disciplines));
+        }
+
+        // 특정 교원의 승진 제한 여부 확인
+        function checkDisciplineRestriction(teacherName, department, promotionDate) {
+            const disciplines = getDisciplines();
+            const promotionDateObj = new Date(promotionDate);
+
+            for (const discipline of disciplines) {
+                // 이름과 소속이 일치하는지 확인
+                if (discipline.name === teacherName &&
+                    (!discipline.department || discipline.department === department)) {
+
+                    const restrictionMonths = DISCIPLINE_RESTRICTION_MONTHS[discipline.type] || 0;
+                    const endDate = new Date(discipline.endDate);
+                    const restrictionEndDate = new Date(endDate);
+                    restrictionEndDate.setMonth(restrictionEndDate.getMonth() + restrictionMonths);
+
+                    // 승진일이 제한 해제일 이전이면 승진 불가
+                    if (promotionDateObj < restrictionEndDate) {
+                        return {
+                            isRestricted: true,
+                            type: DISCIPLINE_LABELS[discipline.type],
+                            restrictionEndDate: DateUtils.formatDate(restrictionEndDate)
+                        };
+                    }
+                }
+            }
+
+            return { isRestricted: false };
+        }
     </script>
 
     <!-- 교원 상세 정보 모달 -->

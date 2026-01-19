@@ -825,7 +825,6 @@
 
             let createdExceptions = [];
             let resignationCount = 0;
-            let disciplineCount = 0;
             let otherCount = 0;
             let filteredCount = 0;
 
@@ -860,11 +859,9 @@
                 // 휴직은 예외로 등록하지 않음
                 // → 휴직 기간은 promotion-engine.js의 calculateLeaveMonths()에서
                 //   승진 예정일에 자동으로 가산 처리됨 (교원인사규정 제15조)
-                // 징계 관련
-                else if (typeStr.includes('징계') || typeStr.includes('정직') || typeStr.includes('감봉')) {
-                    exceptionType = 'discipline';
-                    disciplineCount++;
-                }
+                // 징계는 자동 등록하지 않음
+                // → 발령사항의 징계 데이터는 정확하지 않아 별도 징계처분 탭에서 수작업 관리
+                //   (교원인사규정 제15조의2 참조)
 
                 if (exceptionType) {
                     // 중복 확인 (같은 이름+소속+유형+승진일이 이미 있는지)
@@ -901,7 +898,6 @@
             showAnalysisResult({
                 total: createdExceptions.length,
                 resignation: resignationCount,
-                discipline: disciplineCount,
                 other: otherCount,
                 filtered: filteredCount,
                 totalRecords: appointmentData.length,
@@ -926,10 +922,11 @@
                 contentDiv.innerHTML = filteredInfo + `
                     <p style="color: var(--text-secondary);">
                         새로운 예외 사항이 발견되지 않았습니다.<br>
-                        (이미 등록된 항목이거나 사직/징계 기록이 없습니다)
+                        (이미 등록된 항목이거나 사직 기록이 없습니다)
                     </p>
                     <p style="color: var(--text-muted); font-size: var(--font-size-sm);">
-                        ※ 휴직 기간은 예외가 아닌 승진예정일 자동 가산으로 처리됩니다.
+                        ※ 휴직 기간은 예외가 아닌 승진예정일 자동 가산으로 처리됩니다.<br>
+                        ※ 징계는 승진 탭의 징계처분 관리에서 수작업으로 등록하세요.
                     </p>
                 `;
             } else {
@@ -937,17 +934,14 @@
                     <div style="margin-bottom: var(--spacing-md);">
                         <strong>${result.total}건의 예외 사항이 자동으로 등록되었습니다.</strong>
                         <p style="color: var(--text-muted); font-size: var(--font-size-sm); margin-top: var(--spacing-xs);">
-                            ※ 휴직 기간은 예외가 아닌 승진예정일 자동 가산으로 처리됩니다.
+                            ※ 휴직 기간은 예외가 아닌 승진예정일 자동 가산으로 처리됩니다.<br>
+                            ※ 징계는 승진 탭의 징계처분 관리에서 수작업으로 등록하세요.
                         </p>
                     </div>
                     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: var(--spacing-sm); margin-bottom: var(--spacing-md);">
                         <div style="padding: var(--spacing-sm); background: white; border-radius: var(--radius-sm); text-align: center;">
                             <div style="font-size: var(--font-size-xl); font-weight: 600; color: var(--color-danger);">${result.resignation}</div>
                             <div style="font-size: var(--font-size-sm); color: var(--text-secondary);">사직서 제출</div>
-                        </div>
-                        <div style="padding: var(--spacing-sm); background: white; border-radius: var(--radius-sm); text-align: center;">
-                            <div style="font-size: var(--font-size-xl); font-weight: 600; color: var(--color-primary);">${result.discipline}</div>
-                            <div style="font-size: var(--font-size-sm); color: var(--text-secondary);">징계</div>
                         </div>
                     </div>
                     <div style="margin-top: var(--spacing-md);">
