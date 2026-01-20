@@ -566,6 +566,7 @@
                 <button class="tab-button active" onclick="switchTab('candidates')">📋 승진 대상자 목록</button>
                 <button class="tab-button" onclick="switchTab('exceptions')">⚙️ 예외 사항 관리</button>
                 <button class="tab-button" onclick="switchTab('discipline')">⚖️ 징계처분 관리</button>
+                <button class="tab-button" onclick="switchTab('special')">⭐ 특별 관리 대상</button>
             </div>
 
             <!-- 탭1: 승진 대상자 목록 -->
@@ -722,6 +723,64 @@
                     </div>
                 </div>
             </div>
+
+            <!-- 탭4: 특별 관리 대상 -->
+            <div id="tab-special" class="tab-content">
+                <div class="card no-print">
+                    <div class="card-header">
+                        <h3 class="card-title">특별 관리 대상</h3>
+                    </div>
+                    <div class="card-body">
+                        <p style="color: var(--text-secondary); margin-bottom: var(--spacing-md);">
+                            휴직, 복직, 재임용 시기 등 복잡한 상황으로 인해 별도 관리가 필요한 교원을 등록합니다.<br>
+                            <strong>휴직 기간, 잔여 근무기간, 예상 재임용/승진 시기</strong> 등을 상세히 기록할 수 있습니다.
+                        </p>
+
+                        <!-- 특별 관리 추가 폼 -->
+                        <div style="background: var(--bg-secondary); padding: var(--spacing-md); border-radius: var(--radius-md); margin-bottom: var(--spacing-md);">
+                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: var(--spacing-md);">
+                                <div class="form-group">
+                                    <label class="form-label">소속학과 *</label>
+                                    <input type="text" id="specialDepartment" class="form-control" placeholder="예: 체육학과">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">성명 *</label>
+                                    <input type="text" id="specialName" class="form-control" placeholder="예: 홍길동">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">관리 유형 *</label>
+                                    <select id="specialType" class="form-control">
+                                        <option value="">선택하세요</option>
+                                        <option value="reappointment">재임용 관련</option>
+                                        <option value="promotion">승진 관련</option>
+                                        <option value="leave">휴직/복직 관련</option>
+                                        <option value="contract">계약기간 관련</option>
+                                        <option value="other">기타</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">예상 처리 시기</label>
+                                    <input type="text" id="specialExpectedDate" class="form-control" placeholder="예: 2026학년도 2학기">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">상세 내용 *</label>
+                                <textarea id="specialDetail" class="form-control" rows="6" placeholder="근무기간, 휴직기간, 잔여근무기간, 복직예정일, 재임용/승진 예상 시기 등을 상세히 기록하세요."></textarea>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">결론/조치사항</label>
+                                <input type="text" id="specialConclusion" class="form-control" placeholder="예: 2026학년도 2학기 재임용 진행">
+                            </div>
+                            <button class="btn btn-primary" onclick="addSpecialCase()">특별 관리 대상 등록</button>
+                        </div>
+
+                        <!-- 특별 관리 목록 -->
+                        <div id="specialCaseList">
+                            <p class="text-center text-muted p-3">등록된 특별 관리 대상이 없습니다.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <!-- 인쇄용 헤더 (화면에서는 숨김) -->
@@ -756,6 +815,8 @@
             setToday();
             loadExceptionsList();
             loadDisciplineList();
+            initializeSpecialCases();
+            loadSpecialCaseList();
         });
 
         // 탭 전환 함수
@@ -1841,6 +1902,350 @@
             }
 
             return { isRestricted: false };
+        }
+
+        // ===== 특별 관리 대상 함수 =====
+
+        const SPECIAL_CASE_KEY = 'specialCaseRecords';
+
+        const SPECIAL_TYPE_LABELS = {
+            'reappointment': '재임용 관련',
+            'promotion': '승진 관련',
+            'leave': '휴직/복직 관련',
+            'contract': '계약기간 관련',
+            'other': '기타'
+        };
+
+        const SPECIAL_TYPE_COLORS = {
+            'reappointment': 'var(--color-info)',
+            'promotion': 'var(--color-primary)',
+            'leave': 'var(--color-warning)',
+            'contract': 'var(--color-success)',
+            'other': 'var(--text-secondary)'
+        };
+
+        // 특별 관리 대상 목록 가져오기
+        function getSpecialCases() {
+            const stored = localStorage.getItem(SPECIAL_CASE_KEY);
+            return stored ? JSON.parse(stored) : [];
+        }
+
+        // 특별 관리 대상 목록 저장
+        function saveSpecialCases(cases) {
+            localStorage.setItem(SPECIAL_CASE_KEY, JSON.stringify(cases));
+        }
+
+        // 특별 관리 대상 목록 로드
+        function loadSpecialCaseList() {
+            const cases = getSpecialCases();
+            const container = document.getElementById('specialCaseList');
+
+            if (cases.length === 0) {
+                container.innerHTML = '<p class="text-center text-muted p-3">등록된 특별 관리 대상이 없습니다.</p>';
+                return;
+            }
+
+            let html = '<div style="display: flex; flex-direction: column; gap: var(--spacing-md);">';
+
+            cases.forEach((item, index) => {
+                const typeLabel = SPECIAL_TYPE_LABELS[item.type] || item.type;
+                const typeColor = SPECIAL_TYPE_COLORS[item.type] || 'var(--text-secondary)';
+                const addedDate = new Date(item.addedDate);
+                const dateStr = DateUtils.formatDate(addedDate);
+
+                // 상세 내용을 줄바꿈 처리
+                const detailHtml = (item.detail || '').replace(/\n/g, '<br>');
+
+                html += `
+                    <div style="background: white; border: 1px solid var(--border-color); border-radius: var(--radius-md); border-left: 4px solid ${typeColor}; overflow: hidden;">
+                        <div style="padding: var(--spacing-md);">
+                            <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: var(--spacing-sm);">
+                                <div style="flex: 1;">
+                                    <div style="font-weight: 700; font-size: var(--font-size-xl); margin-bottom: var(--spacing-xs); color: var(--text-primary);">
+                                        ${item.name}
+                                        <span style="color: var(--text-secondary); font-weight: 400; font-size: var(--font-size-md);">(${item.department})</span>
+                                    </div>
+                                    <div style="margin-bottom: var(--spacing-sm);">
+                                        <span class="badge" style="background: ${typeColor}; color: white;">${typeLabel}</span>
+                                        ${item.expectedDate ? `<span class="badge badge-warning">예상: ${item.expectedDate}</span>` : ''}
+                                    </div>
+                                </div>
+                                <div style="display: flex; gap: var(--spacing-xs);">
+                                    <button class="btn btn-sm btn-outline" onclick="editSpecialCase(${index})" title="수정">
+                                        ✏️
+                                    </button>
+                                    <button class="btn btn-sm btn-danger" onclick="deleteSpecialCase(${index})" title="삭제">
+                                        🗑️
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div style="background: var(--bg-secondary); padding: var(--spacing-md); border-radius: var(--radius-sm); margin-bottom: var(--spacing-sm);">
+                                <div style="font-size: var(--font-size-sm); color: var(--text-primary); line-height: 1.6;">
+                                    ${detailHtml}
+                                </div>
+                            </div>
+
+                            ${item.conclusion ? `
+                                <div style="background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%); padding: var(--spacing-sm) var(--spacing-md); border-radius: var(--radius-sm); margin-bottom: var(--spacing-sm);">
+                                    <strong style="color: var(--color-success);">▶ 결론:</strong>
+                                    <span style="color: var(--text-primary);">${item.conclusion}</span>
+                                </div>
+                            ` : ''}
+
+                            <div style="color: var(--text-muted); font-size: var(--font-size-xs);">
+                                등록일: ${dateStr}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            html += '</div>';
+            container.innerHTML = html;
+        }
+
+        // 특별 관리 대상 추가
+        function addSpecialCase() {
+            const department = document.getElementById('specialDepartment').value.trim();
+            const name = document.getElementById('specialName').value.trim();
+            const type = document.getElementById('specialType').value;
+            const expectedDate = document.getElementById('specialExpectedDate').value.trim();
+            const detail = document.getElementById('specialDetail').value.trim();
+            const conclusion = document.getElementById('specialConclusion').value.trim();
+
+            if (!department || !name || !type || !detail) {
+                alert('소속학과, 성명, 관리 유형, 상세 내용은 필수입니다.');
+                return;
+            }
+
+            const specialCase = {
+                department,
+                name,
+                type,
+                expectedDate,
+                detail,
+                conclusion,
+                addedDate: new Date().toISOString()
+            };
+
+            const cases = getSpecialCases();
+            cases.push(specialCase);
+            saveSpecialCases(cases);
+
+            // 폼 초기화
+            clearSpecialCaseForm();
+
+            loadSpecialCaseList();
+            alert('특별 관리 대상이 등록되었습니다.');
+        }
+
+        // 폼 초기화
+        function clearSpecialCaseForm() {
+            document.getElementById('specialDepartment').value = '';
+            document.getElementById('specialName').value = '';
+            document.getElementById('specialType').value = '';
+            document.getElementById('specialExpectedDate').value = '';
+            document.getElementById('specialDetail').value = '';
+            document.getElementById('specialConclusion').value = '';
+        }
+
+        // 특별 관리 대상 삭제
+        function deleteSpecialCase(index) {
+            const cases = getSpecialCases();
+            const item = cases[index];
+
+            if (!confirm(`${item.name} (${item.department})의 특별 관리 정보를 삭제하시겠습니까?`)) {
+                return;
+            }
+
+            cases.splice(index, 1);
+            saveSpecialCases(cases);
+            loadSpecialCaseList();
+        }
+
+        // 특별 관리 대상 수정
+        let editingSpecialCaseIndex = null;
+
+        function editSpecialCase(index) {
+            const cases = getSpecialCases();
+            const item = cases[index];
+
+            // 폼에 기존 값 채우기
+            document.getElementById('specialDepartment').value = item.department || '';
+            document.getElementById('specialName').value = item.name || '';
+            document.getElementById('specialType').value = item.type || '';
+            document.getElementById('specialExpectedDate').value = item.expectedDate || '';
+            document.getElementById('specialDetail').value = item.detail || '';
+            document.getElementById('specialConclusion').value = item.conclusion || '';
+
+            // 수정 모드로 전환
+            editingSpecialCaseIndex = index;
+
+            // 버튼 텍스트 변경
+            const addBtn = document.querySelector('#tab-special .btn-primary');
+            addBtn.textContent = '특별 관리 대상 수정';
+            addBtn.onclick = saveEditedSpecialCase;
+
+            // 취소 버튼 추가
+            if (!document.getElementById('cancelSpecialEditBtn')) {
+                const cancelBtn = document.createElement('button');
+                cancelBtn.id = 'cancelSpecialEditBtn';
+                cancelBtn.className = 'btn btn-outline';
+                cancelBtn.textContent = '취소';
+                cancelBtn.style.marginLeft = 'var(--spacing-sm)';
+                cancelBtn.onclick = cancelSpecialEdit;
+                addBtn.parentNode.appendChild(cancelBtn);
+            }
+
+            // 폼으로 스크롤
+            document.getElementById('specialDepartment').focus();
+        }
+
+        function saveEditedSpecialCase() {
+            if (editingSpecialCaseIndex === null) return;
+
+            const department = document.getElementById('specialDepartment').value.trim();
+            const name = document.getElementById('specialName').value.trim();
+            const type = document.getElementById('specialType').value;
+            const expectedDate = document.getElementById('specialExpectedDate').value.trim();
+            const detail = document.getElementById('specialDetail').value.trim();
+            const conclusion = document.getElementById('specialConclusion').value.trim();
+
+            if (!department || !name || !type || !detail) {
+                alert('소속학과, 성명, 관리 유형, 상세 내용은 필수입니다.');
+                return;
+            }
+
+            const cases = getSpecialCases();
+            const item = cases[editingSpecialCaseIndex];
+
+            // 기존 값 업데이트
+            item.department = department;
+            item.name = name;
+            item.type = type;
+            item.expectedDate = expectedDate;
+            item.detail = detail;
+            item.conclusion = conclusion;
+
+            saveSpecialCases(cases);
+
+            // 수정 모드 종료
+            cancelSpecialEdit();
+
+            loadSpecialCaseList();
+            alert('특별 관리 대상이 수정되었습니다.');
+        }
+
+        function cancelSpecialEdit() {
+            editingSpecialCaseIndex = null;
+
+            // 폼 초기화
+            clearSpecialCaseForm();
+
+            // 버튼 원래대로
+            const addBtn = document.querySelector('#tab-special .btn-primary');
+            addBtn.textContent = '특별 관리 대상 등록';
+            addBtn.onclick = addSpecialCase;
+
+            // 취소 버튼 제거
+            const cancelBtn = document.getElementById('cancelSpecialEditBtn');
+            if (cancelBtn) {
+                cancelBtn.remove();
+            }
+        }
+
+        // 초기 데이터 세팅 (최초 1회만)
+        function initializeSpecialCases() {
+            const cases = getSpecialCases();
+            if (cases.length === 0) {
+                // 사용자가 제공한 초기 데이터
+                const initialData = [
+                    {
+                        department: '체육학과',
+                        name: '장미란',
+                        type: 'reappointment',
+                        expectedDate: '2026학년도 2학기',
+                        detail: `2021.09.01.~2024.08.31. 재임용(3년 / 36개월)
+2021.09.01. ~ 2023.07.02. - 1년 10개월 2일(22개월 2일) / 잔여근무 1년 1개월 28일(13개월 28일)
+2023.07.03. ~ 2025.08.13. - 고용휴직
+2025.08.14. ~ 2026.10.11. - 1년 1개월 28일
+2025년 8월 14일 복직 후 2027년 3월 재임용 대상자`,
+                        conclusion: '2026학년도 2학기 재임용 진행',
+                        addedDate: new Date().toISOString()
+                    },
+                    {
+                        department: '유도학과',
+                        name: '김판수',
+                        type: 'reappointment',
+                        expectedDate: '2027년 9월',
+                        detail: `2019.04.01. ~ 2026.03.31. - 승진임용(7년 / 84개월)
+2019.04.01. ~ 2020.09.07. - 1년 5개월(17개월) / 잔여근무 5년 7개월(67개월)
+2020.09.08. ~ 2021.08.31. - 육아휴직(11개월 23일)
+2021.09.01. ~ 2025.02.28. - 3년 6개월(42개월) / 잔여근무 2년 1개월(25개월)
+2025.03.01. ~ 2027.03.31. - 2년 1개월(25개월) / 잔여근무 0개월
+학기중 임용기간 만료로 2027년 9월 재임용 대상자`,
+                        conclusion: '2027년 9월 재임용 대상자',
+                        addedDate: new Date().toISOString()
+                    },
+                    {
+                        department: '골프학과',
+                        name: '김순희',
+                        type: 'reappointment',
+                        expectedDate: '2029년 2학기',
+                        detail: `2020.03.01. ~ 2022.02.28. - 재임용기간(2년 / 24개월)
+2020.03.01. ~ 2020.04.15. - 1개월 16일 / 잔여근무 22개월 14일
+2020.04.16. ~ 2024.04.15. - 고용휴직(4년)
+2024.04.16. ~ 2025.02.28. - 고용휴직(10개월 15일)
+2025.03.01. ~ 2028.04.08. - 고용휴직(3년 1개월 8일) / 잔여근무 22개월 14일
+2028년 4월 8일 복직 후 2030년 3월 재임용 대상자`,
+                        conclusion: '2029년 2학기 재임용 진행',
+                        addedDate: new Date().toISOString()
+                    },
+                    {
+                        department: '영화영상학과',
+                        name: '이제희',
+                        type: 'reappointment',
+                        expectedDate: '2025년 2학기',
+                        detail: `2020.03.01. ~ 2023.02.28. - 최초임용(3년 / 36개월)
+2020.03.01. ~ 2020.08.31. - 6개월 / 잔여근무 2년 6개월(30개월)
+2020.09.01. ~ 2021.08.31. - 육아휴직(1년)
+2021.09.01. ~ 2023.04.30. - 1년 8개월(20개월) / 잔여근무 10개월
+2023.05.01. ~ 2024.02.28. - 질병휴직(9개월 28일)
+2024.03.01. ~ 2024.08.31. - 6개월 / 잔여근무 4개월
+2025.09.01. 복직 후 2025.12.31. 계약만료로 학기중 계약 만료되어 2026년 3월 재임용 대상`,
+                        conclusion: '2025년 2학기 재임용 절차 진행',
+                        addedDate: new Date().toISOString()
+                    },
+                    {
+                        department: '유도경기지도학과',
+                        name: '이원희',
+                        type: 'promotion',
+                        expectedDate: '2025년 10월 1일',
+                        detail: `<2025년 10월 1일 기준>
+2017.03.01. ~ 2017.08.31. - 6개월 근무
+2017.09.01. ~ 2019.08.31. – 휴직 2년(학위취득)
+2019.09.01. ~ 2023.08.31. – 4년
+2023.09.01. ~ 2024.01.07. – 휴직 4개월 7일(육아)
+2024.01.08. ~ 2025.10.01. – 1년 8개월
+=> 6년 2개월(부교수 승진)`,
+                        conclusion: '2025년 10월 부교수 승진 대상',
+                        addedDate: new Date().toISOString()
+                    },
+                    {
+                        department: '영화영상학과',
+                        name: '장건재',
+                        type: 'contract',
+                        expectedDate: '2029년 9월 30일',
+                        detail: `2028년 9월 30일까지 임용기간이지만 연구년 연장 사유로 1년 휴직하여
+2029년 9월 30일 임용 만료됨`,
+                        conclusion: '연구년 연장으로 임용 만료일 2029년 9월 30일로 변경',
+                        addedDate: new Date().toISOString()
+                    }
+                ];
+
+                saveSpecialCases(initialData);
+            }
         }
     </script>
 
