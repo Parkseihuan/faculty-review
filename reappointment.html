@@ -378,10 +378,6 @@
                                 <label class="form-label">예상 처리 시기</label>
                                 <input type="text" id="specialExpectedDate" class="form-control" placeholder="예: 2026학년도 2학기">
                             </div>
-                            <div class="form-group">
-                                <label class="form-label">결론/조치사항</label>
-                                <input type="text" id="specialConclusion" class="form-control" placeholder="예: 2026학년도 2학기 재임용 진행">
-                            </div>
                         </div>
                         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: var(--spacing-md); margin-bottom: var(--spacing-md); padding: var(--spacing-md); background: #e3f2fd; border-radius: var(--radius-sm);">
                             <div class="form-group" style="margin-bottom: 0;">
@@ -578,7 +574,6 @@
             const department = document.getElementById('specialDepartment').value.trim();
             const name = document.getElementById('specialName').value.trim();
             const expectedDate = document.getElementById('specialExpectedDate').value.trim();
-            const conclusion = document.getElementById('specialConclusion').value.trim();
             const expectedStartDate = document.getElementById('expectedStartDate').value;
             const expectedEndDate = document.getElementById('expectedEndDate').value;
 
@@ -588,7 +583,7 @@
             }
 
             SpecialManagement.addRecord({
-                name, department, type, expectedDate, conclusion,
+                name, department, type, expectedDate,
                 expectedStartDate, expectedEndDate
             });
 
@@ -596,7 +591,6 @@
             document.getElementById('specialDepartment').value = '';
             document.getElementById('specialName').value = '';
             document.getElementById('specialExpectedDate').value = '';
-            document.getElementById('specialConclusion').value = '';
             document.getElementById('expectedStartDate').value = '';
             document.getElementById('expectedEndDate').value = '';
 
@@ -680,11 +674,6 @@
                     </div>
                     <div class="special-card-body">
                         ${tableHtml}
-                        ${record.conclusion ? `
-                            <div class="special-conclusion">
-                                <strong>▶ 결론:</strong> ${record.conclusion}
-                            </div>
-                        ` : ''}
                         <div class="special-actions">
                             <button class="btn btn-sm btn-outline" onclick="editSpecialRecord('${record.id}')">수정</button>
                             <button class="btn btn-sm btn-danger" onclick="deleteSpecialRecord('${record.id}')">삭제</button>
