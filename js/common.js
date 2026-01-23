@@ -270,14 +270,22 @@ const NavUtils = {
      * 현재 페이지에 맞는 네비게이션 링크 활성화
      */
     initActiveLink() {
-        const currentPage = window.location.pathname.split('/').pop() || 'index.html';
+        // 현재 페이지 파일명 추출 (경로와 쿼리스트링 제거)
+        let currentPage = window.location.pathname.split('/').pop() || 'index.html';
+        // 빈 문자열이거나 슬래시만 있으면 index.html로 처리
+        if (currentPage === '' || currentPage === '/') {
+            currentPage = 'index.html';
+        }
+
         const navLinks = document.querySelectorAll('.navbar-link');
 
         navLinks.forEach(link => {
+            // href 속성에서 파일명만 추출
             const href = link.getAttribute('href');
-            if (href === currentPage ||
-                (currentPage === '' && href === 'index.html') ||
-                (currentPage === 'index.html' && href === 'index.html')) {
+            const hrefFileName = href ? href.split('/').pop().split('?')[0] : '';
+
+            // 파일명 비교로 활성화 결정
+            if (hrefFileName === currentPage) {
                 link.classList.add('active');
             } else {
                 link.classList.remove('active');

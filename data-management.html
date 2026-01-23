@@ -190,6 +190,9 @@
                     <h3 class="card-title">📊 교원현황 데이터</h3>
                 </div>
                 <div class="card-body">
+                    <p style="color: var(--text-secondary); margin-bottom: var(--spacing-sm); font-size: var(--font-size-sm);">
+                        교원현황 파일을 업로드하면 전임교원 정보를 분석하여 승진/재임용 대상자를 자동으로 산출합니다.
+                    </p>
                     <div class="upload-section" id="uploadSection">
                         <input type="file" id="fileInput" accept=".xlsx,.xls" onchange="loadExcelFile(event)">
                         <div class="upload-icon">📊</div>
@@ -223,28 +226,28 @@
                     <p style="color: var(--text-secondary); margin-bottom: var(--spacing-sm); font-size: var(--font-size-sm);">
                         발령사항 파일을 업로드하면 사직, 휴직, 징계 등의 정보를 자동으로 분석하여 승진 예외 사항에 등록합니다.
                     </p>
-                    <div class="upload-section" id="appointmentUploadSection" style="margin-bottom: 0;">
+                    <div class="upload-section" id="appointmentUploadSection">
                         <input type="file" id="appointmentFileInput" accept=".xlsx,.xls" onchange="loadAppointmentFile(event)">
                         <div class="upload-icon">📋</div>
-                    <h3 class="upload-title">발령사항 엑셀 파일 업로드</h3>
-                    <p class="upload-description">
-                        클릭하거나 파일을 드래그하여 업로드하세요<br>
-                        <small>(지원 형식: .xlsx, .xls)</small>
-                    </p>
-                    <button class="btn btn-primary" onclick="document.getElementById('appointmentFileInput').click()">
-                        파일 선택
-                    </button>
-                    <div class="file-info" id="appointmentFileInfo">
-                        <strong id="appointmentFileName"></strong> - <span id="appointmentFileSize"></span>
+                        <h3 class="upload-title">발령사항 엑셀 파일 업로드</h3>
+                        <p class="upload-description">
+                            클릭하거나 파일을 드래그하여 업로드하세요<br>
+                            <small>(지원 형식: .xlsx, .xls)</small>
+                        </p>
+                        <button class="btn btn-primary" onclick="document.getElementById('appointmentFileInput').click()">
+                            파일 선택
+                        </button>
+                        <div class="file-info" id="appointmentFileInfo">
+                            <strong id="appointmentFileName"></strong> - <span id="appointmentFileSize"></span>
+                        </div>
+                    </div>
+
+                    <!-- 분석 결과 -->
+                    <div id="appointmentAnalysisResult" style="display: none; margin-top: var(--spacing-md); padding: var(--spacing-md); background: var(--bg-secondary); border-radius: var(--radius-md);">
+                        <h4 style="margin-bottom: var(--spacing-sm);">분석 결과</h4>
+                        <div id="appointmentAnalysisContent"></div>
                     </div>
                 </div>
-
-                <!-- 분석 결과 -->
-                <div id="appointmentAnalysisResult" style="display: none; margin-top: var(--spacing-md); padding: var(--spacing-md); background: var(--bg-secondary); border-radius: var(--radius-md);">
-                    <h4 style="margin-bottom: var(--spacing-sm);">분석 결과</h4>
-                    <div id="appointmentAnalysisContent"></div>
-                </div>
-            </div>
             </div>
         </div>
 
