@@ -7,7 +7,6 @@
     <link rel="stylesheet" href="css/common.css">
     <link rel="stylesheet" href="css/navigation.css">
     <link rel="stylesheet" href="css/print.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
         body {
             padding-top: 60px;
@@ -61,7 +60,6 @@
             font-size: var(--font-size-stat);
             font-weight: 700;
             color: var(--color-primary);
-            margin-bottom: var(--spacing-xs);
         }
 
         .stat-label {
@@ -69,64 +67,12 @@
             color: var(--text-secondary);
         }
 
-        .search-controls {
-            display: flex;
-            gap: var(--spacing-md);
-            margin-bottom: var(--spacing-md);
-            flex-wrap: wrap;
-            align-items: center;
-        }
-
-        .search-controls .form-control {
-            flex: 1;
-            min-width: 200px;
-        }
-
-        .filter-buttons {
-            display: flex;
-            gap: var(--spacing-sm);
-            flex-wrap: wrap;
-        }
-
-        .filter-btn {
-            padding: var(--spacing-sm) var(--spacing-md);
-            border: 1px solid var(--border-color);
-            background: var(--bg-secondary);
-            border-radius: var(--radius-sm);
-            cursor: pointer;
-            font-size: var(--font-size-sm);
-            transition: all 0.15s ease;
-        }
-
-        .filter-btn:hover,
-        .filter-btn.active {
-            background: var(--color-primary);
-            color: white;
-            border-color: var(--color-primary);
-        }
-
-        .table-wrapper {
-            overflow-x: auto;
-            border-radius: var(--radius-md);
-            border: 1px solid var(--border-color);
-        }
-
-        .empty-state {
-            text-align: center;
-            padding: var(--spacing-xl);
-            color: var(--text-muted);
-        }
-
-        /* 탭 스타일 */
-        .tabs-container {
-            margin-bottom: var(--spacing-lg);
-        }
-
         .tabs-nav {
             display: flex;
             gap: var(--spacing-xs);
             border-bottom: 2px solid var(--border-color);
             margin-bottom: var(--spacing-lg);
+            flex-wrap: wrap;
         }
 
         .tab-button {
@@ -162,20 +108,51 @@
             display: block;
         }
 
-        .status-urgent {
-            background-color: var(--color-danger);
-            color: white;
+        .search-controls {
+            display: flex;
+            gap: var(--spacing-md);
+            margin-bottom: var(--spacing-md);
+            flex-wrap: wrap;
+            align-items: center;
         }
 
-        .status-warning {
-            background-color: var(--color-warning);
-            color: var(--text-primary);
+        .filter-buttons {
+            display: flex;
+            gap: var(--spacing-sm);
+            flex-wrap: wrap;
         }
 
-        .status-normal {
-            background-color: var(--color-success);
-            color: white;
+        .filter-btn {
+            padding: var(--spacing-sm) var(--spacing-md);
+            border: 1px solid var(--border-color);
+            background: var(--bg-secondary);
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            font-size: var(--font-size-sm);
+            transition: all 0.15s ease;
         }
+
+        .filter-btn:hover, .filter-btn.active {
+            background: var(--color-primary);
+            color: white;
+            border-color: var(--color-primary);
+        }
+
+        .table-wrapper {
+            overflow-x: auto;
+            border-radius: var(--radius-md);
+            border: 1px solid var(--border-color);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: var(--spacing-xl);
+            color: var(--text-muted);
+        }
+
+        .status-urgent { background-color: var(--color-danger); color: white; }
+        .status-warning { background-color: var(--color-warning); color: var(--text-primary); }
+        .status-normal { background-color: var(--color-success); color: white; }
 
         .info-box {
             background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
@@ -185,15 +162,94 @@
             margin-bottom: var(--spacing-lg);
         }
 
-        .info-box h4 {
-            color: var(--color-info);
-            margin: 0 0 var(--spacing-xs) 0;
+        .info-box h4 { color: var(--color-info); margin: 0 0 var(--spacing-xs) 0; }
+        .info-box p { margin: 0; font-size: var(--font-size-sm); color: var(--text-secondary); }
+
+        /* 특별 관리 대상 카드 스타일 */
+        .special-card {
+            background: white;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            margin-bottom: var(--spacing-lg);
+            overflow: hidden;
         }
 
-        .info-box p {
+        .special-card-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: var(--spacing-md) var(--spacing-lg);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .special-card-header h4 {
             margin: 0;
+            font-size: var(--font-size-lg);
+        }
+
+        .special-card-header .badge {
+            background: rgba(255,255,255,0.2);
+            padding: 4px 12px;
+            border-radius: var(--radius-sm);
             font-size: var(--font-size-sm);
-            color: var(--text-secondary);
+        }
+
+        .special-card-body {
+            padding: var(--spacing-md);
+        }
+
+        .special-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: var(--font-size-sm);
+        }
+
+        .special-table th, .special-table td {
+            padding: var(--spacing-sm) var(--spacing-md);
+            border: 1px solid var(--border-color);
+            text-align: center;
+        }
+
+        .special-table th {
+            background: var(--bg-secondary);
+            font-weight: 600;
+        }
+
+        .special-table tr.leave-row {
+            background: #fff3cd;
+        }
+
+        .special-table tr.current-row {
+            background: #d4edda;
+            font-weight: 600;
+        }
+
+        .special-table tr.return-row {
+            background: #cce5ff;
+        }
+
+        .special-table tr.sick-row {
+            background: #f8f9fa;
+            color: var(--text-muted);
+        }
+
+        .special-conclusion {
+            background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
+            padding: var(--spacing-md);
+            border-radius: var(--radius-sm);
+            margin-top: var(--spacing-md);
+        }
+
+        .special-conclusion strong {
+            color: var(--color-success);
+        }
+
+        .special-actions {
+            display: flex;
+            gap: var(--spacing-sm);
+            margin-top: var(--spacing-md);
+            justify-content: flex-end;
         }
     </style>
 </head>
@@ -206,21 +262,11 @@
                 <span class="navbar-toggle-icon"></span>
             </button>
             <ul class="navbar-menu">
-                <li class="navbar-item">
-                    <a href="index.html" class="navbar-link" data-page="dashboard">대시보드</a>
-                </li>
-                <li class="navbar-item">
-                    <a href="promotion.html" class="navbar-link" data-page="promotion">승진</a>
-                </li>
-                <li class="navbar-item">
-                    <a href="reappointment.html" class="navbar-link" data-page="reappointment">재임용</a>
-                </li>
-                <li class="navbar-item">
-                    <a href="data-management.html" class="navbar-link" data-page="data">데이터 관리</a>
-                </li>
-                <li class="navbar-item">
-                    <a href="process.html" class="navbar-link" data-page="process">프로세스 & 규정</a>
-                </li>
+                <li class="navbar-item"><a href="index.html" class="navbar-link">대시보드</a></li>
+                <li class="navbar-item"><a href="promotion.html" class="navbar-link">승진</a></li>
+                <li class="navbar-item"><a href="reappointment.html" class="navbar-link">재임용</a></li>
+                <li class="navbar-item"><a href="data-management.html" class="navbar-link">데이터 관리</a></li>
+                <li class="navbar-item"><a href="process.html" class="navbar-link">프로세스 & 규정</a></li>
             </ul>
         </div>
     </nav>
@@ -249,6 +295,7 @@
                 <label for="baseDate" class="form-label mb-0">기준 날짜:</label>
                 <input type="date" id="baseDate" class="form-control" style="width: auto;">
                 <button class="btn btn-secondary btn-sm" onclick="setToday()">오늘</button>
+                <span id="baseDateDisplay" style="color: var(--text-secondary);"></span>
             </div>
         </div>
 
@@ -275,8 +322,8 @@
         <!-- 탭 UI -->
         <div class="tabs-container">
             <div class="tabs-nav no-print">
-                <button class="tab-button active" onclick="switchTab('candidates')">📋 재임용 대상자 목록</button>
-                <button class="tab-button" onclick="switchTab('special')">⭐ 특별 관리 대상</button>
+                <button class="tab-button active" onclick="switchTab('candidates')">📋 재임용 대상자</button>
+                <button class="tab-button" onclick="switchTab('special')">⭐ 특별 관리 대상 (재임용)</button>
             </div>
 
             <!-- 탭1: 재임용 대상자 목록 -->
@@ -287,7 +334,7 @@
                     </div>
                     <div class="card-body">
                         <div class="search-controls no-print">
-                            <input type="text" id="searchBox" class="form-control" placeholder="교원명, 소속, 직급 검색..." onkeyup="filterTable()">
+                            <input type="text" id="searchBox" class="form-control" placeholder="검색..." onkeyup="filterTable()" style="flex:1; min-width:200px;">
                             <div class="filter-buttons">
                                 <button class="filter-btn active" onclick="filterByStatus('all')">전체</button>
                                 <button class="filter-btn" onclick="filterByStatus('urgent')">긴급</button>
@@ -295,71 +342,48 @@
                                 <button class="filter-btn" onclick="filterByStatus('upcoming')">예정</button>
                             </div>
                         </div>
-
                         <div id="candidatesContainer">
-                            <div class="empty-state">
-                                데이터를 불러오는 중...
-                            </div>
+                            <div class="empty-state">데이터를 불러오는 중...</div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- 탭2: 특별 관리 대상 -->
+            <!-- 탭2: 특별 관리 대상 (재임용) -->
             <div id="tab-special" class="tab-content">
                 <div class="card no-print">
                     <div class="card-header">
-                        <h3 class="card-title">특별 관리 대상</h3>
+                        <h3 class="card-title">특별 관리 대상 등록</h3>
                     </div>
                     <div class="card-body">
                         <p style="color: var(--text-secondary); margin-bottom: var(--spacing-md);">
-                            휴직, 복직, 재임용 시기 등 복잡한 상황으로 인해 별도 관리가 필요한 교원을 등록합니다.<br>
-                            <strong>이 목록은 승진 관리 페이지와 공유됩니다.</strong>
+                            재임용 관련 복잡한 상황의 교원을 등록합니다. 발령사항 데이터를 기반으로 자동 계산됩니다.
                         </p>
-
-                        <!-- 특별 관리 추가 폼 -->
-                        <div style="background: var(--bg-secondary); padding: var(--spacing-md); border-radius: var(--radius-md); margin-bottom: var(--spacing-md);">
-                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: var(--spacing-md);">
-                                <div class="form-group">
-                                    <label class="form-label">소속학과 *</label>
-                                    <input type="text" id="specialDepartment" class="form-control" placeholder="예: 체육학과">
-                                </div>
-                                <div class="form-group">
-                                    <label class="form-label">성명 *</label>
-                                    <input type="text" id="specialName" class="form-control" placeholder="예: 홍길동">
-                                </div>
-                                <div class="form-group">
-                                    <label class="form-label">관리 유형 *</label>
-                                    <select id="specialType" class="form-control">
-                                        <option value="">선택하세요</option>
-                                        <option value="reappointment">재임용 관련</option>
-                                        <option value="promotion">승진 관련</option>
-                                        <option value="leave">휴직/복직 관련</option>
-                                        <option value="contract">계약기간 관련</option>
-                                        <option value="other">기타</option>
-                                    </select>
-                                </div>
-                                <div class="form-group">
-                                    <label class="form-label">예상 처리 시기</label>
-                                    <input type="text" id="specialExpectedDate" class="form-control" placeholder="예: 2026학년도 2학기">
-                                </div>
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: var(--spacing-md); margin-bottom: var(--spacing-md);">
+                            <div class="form-group">
+                                <label class="form-label">소속학과 *</label>
+                                <input type="text" id="specialDepartment" class="form-control" placeholder="예: 체육학과">
                             </div>
                             <div class="form-group">
-                                <label class="form-label">상세 내용 *</label>
-                                <textarea id="specialDetail" class="form-control" rows="6" placeholder="근무기간, 휴직기간, 잔여근무기간, 복직예정일, 재임용/승진 예상 시기 등을 상세히 기록하세요."></textarea>
+                                <label class="form-label">성명 *</label>
+                                <input type="text" id="specialName" class="form-control" placeholder="예: 홍길동">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">예상 처리 시기</label>
+                                <input type="text" id="specialExpectedDate" class="form-control" placeholder="예: 2026학년도 2학기">
                             </div>
                             <div class="form-group">
                                 <label class="form-label">결론/조치사항</label>
                                 <input type="text" id="specialConclusion" class="form-control" placeholder="예: 2026학년도 2학기 재임용 진행">
                             </div>
-                            <button class="btn btn-primary" onclick="addSpecialCase()">특별 관리 대상 등록</button>
                         </div>
-
-                        <!-- 특별 관리 목록 -->
-                        <div id="specialCaseList">
-                            <p class="text-center text-muted p-3">등록된 특별 관리 대상이 없습니다.</p>
-                        </div>
+                        <button class="btn btn-primary" onclick="addSpecialRecord('reappointment')">특별 관리 대상 등록</button>
                     </div>
+                </div>
+
+                <!-- 특별 관리 목록 -->
+                <div id="specialList">
+                    <div class="empty-state">등록된 특별 관리 대상이 없습니다.</div>
                 </div>
             </div>
         </div>
@@ -367,7 +391,7 @@
 
     <!-- JavaScript -->
     <script src="js/common.js"></script>
-    <script src="js/navigation.js"></script>
+    <script src="js/special-management.js"></script>
     <script>
         let facultyData = [];
         let reappointmentCandidates = [];
@@ -377,56 +401,48 @@
 
         // 페이지 로드 시 초기화
         document.addEventListener('DOMContentLoaded', function() {
+            // 기존 데이터 마이그레이션
+            if (localStorage.getItem('specialCaseRecords') && !localStorage.getItem('specialManagementRecords')) {
+                SpecialManagement.migrateOldData();
+            }
             setToday();
-            initializeSpecialCases();
-            loadSpecialCaseList();
+            loadSpecialList();
         });
 
-        // 탭 전환 함수
         function switchTab(tabName) {
-            document.querySelectorAll('.tab-button').forEach(btn => {
-                btn.classList.remove('active');
-            });
-            document.querySelectorAll('.tab-content').forEach(content => {
-                content.classList.remove('active');
-            });
+            document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
             event.target.classList.add('active');
             document.getElementById('tab-' + tabName).classList.add('active');
         }
 
-        // 오늘 날짜로 설정
         function setToday() {
             currentBaseDate = new Date();
             document.getElementById('baseDate').value = DateUtils.formatDateForInput(currentBaseDate);
+            document.getElementById('baseDateDisplay').textContent = DateUtils.formatDate(currentBaseDate) + ' 기준';
             loadData();
         }
 
-        // 기준 날짜 변경
         document.getElementById('baseDate')?.addEventListener('change', function(e) {
             if (e.target.value) {
                 const parts = e.target.value.split('-');
                 currentBaseDate = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
+                document.getElementById('baseDateDisplay').textContent = DateUtils.formatDate(currentBaseDate) + ' 기준';
                 loadData();
+                loadSpecialList();
             }
         });
 
-        // 데이터 로드
         function loadData() {
-            const savedData = StorageUtils.get('facultyData');
-            if (savedData) {
-                facultyData = savedData;
+            facultyData = StorageUtils.get('facultyData') || [];
+            if (facultyData.length > 0) {
                 calculateReappointments();
             } else {
-                document.getElementById('candidatesContainer').innerHTML = `
-                    <div class="empty-state">
-                        데이터 관리 페이지에서 교원현황 엑셀 파일을 업로드하세요.
-                    </div>
-                `;
+                document.getElementById('candidatesContainer').innerHTML = '<div class="empty-state">데이터 관리 페이지에서 교원현황 파일을 업로드하세요.</div>';
                 updateStatistics({ urgent: 0, warning: 0, upcoming: 0, total: 0 });
             }
         }
 
-        // 재임용 대상자 계산
         function calculateReappointments() {
             reappointmentCandidates = [];
 
@@ -434,82 +450,51 @@
                 const endDate = getEndDate(teacher);
                 const retirementDate = DateUtils.parseDate(teacher['정년일자']);
 
-                // 정년퇴직 예정자 제외
                 if (DateUtils.isSameDate(endDate, retirementDate)) return;
-
-                // 계약 종료일이 없는 경우 제외
                 if (!endDate) return;
 
-                // 이미 종료된 계약 제외
                 const daysUntil = DateUtils.getDaysUntil(endDate, currentBaseDate);
-                if (daysUntil < 0) return;
-
-                // 1년(365일) 이내 종료 예정자만 포함
-                if (daysUntil > 365) return;
+                if (daysUntil < 0 || daysUntil > 365) return;
 
                 const monthsUntil = DateUtils.getMonthsUntil(endDate, currentBaseDate);
                 let status = 'upcoming';
-                if (monthsUntil <= 2) {
-                    status = 'urgent';
-                } else if (monthsUntil <= 4) {
-                    status = 'warning';
-                }
+                if (monthsUntil <= 2) status = 'urgent';
+                else if (monthsUntil <= 4) status = 'warning';
 
                 reappointmentCandidates.push({
-                    teacher: teacher,
-                    endDate: endDate,
-                    daysUntil: daysUntil,
-                    monthsUntil: monthsUntil,
-                    status: status
+                    teacher, endDate, daysUntil, monthsUntil, status
                 });
             });
 
-            // 종료일 기준 정렬 (가까운 순)
             reappointmentCandidates.sort((a, b) => a.daysUntil - b.daysUntil);
-
             filteredCandidates = [...reappointmentCandidates];
             updateStatistics(calculateStats());
             updateTable();
         }
 
-        // 종료일 가져오기
         function getEndDate(teacher) {
-            const renewalEndDate = DateUtils.parseDate(teacher['재임용종료일']);
-            const initialEndDate = DateUtils.parseDate(getTeacherValue(teacher, '최초임용\n종료일'));
-            return renewalEndDate || initialEndDate;
+            return DateUtils.parseDate(teacher['재임용종료일']) || DateUtils.parseDate(getTeacherValue(teacher, '최초임용\n종료일'));
         }
 
-        // 교원 필드값 가져오기
         function getTeacherValue(teacher, key) {
             if (teacher[key] !== undefined) return teacher[key];
             const normalizedKey = key.replace(/\n/g, '');
             for (const k of Object.keys(teacher)) {
-                if (k.replace(/\n/g, '') === normalizedKey) {
-                    return teacher[k];
-                }
+                if (k.replace(/\n/g, '') === normalizedKey) return teacher[k];
             }
             return null;
         }
 
-        // 통계 계산
         function calculateStats() {
             let urgent = 0, warning = 0, upcoming = 0;
-
             reappointmentCandidates.forEach(c => {
                 if (c.status === 'urgent') urgent++;
                 else if (c.status === 'warning') warning++;
                 else upcoming++;
             });
-
-            return {
-                urgent: urgent,
-                warning: warning,
-                upcoming: upcoming,
-                total: reappointmentCandidates.length
-            };
+            return { urgent, warning, upcoming, total: reappointmentCandidates.length };
         }
 
-        // 통계 업데이트
         function updateStatistics(stats) {
             document.getElementById('urgentCount').textContent = stats.urgent;
             document.getElementById('warningCount').textContent = stats.warning;
@@ -517,54 +502,33 @@
             document.getElementById('totalCount').textContent = stats.total;
         }
 
-        // 테이블 업데이트
         function updateTable() {
             const container = document.getElementById('candidatesContainer');
-
             if (filteredCandidates.length === 0) {
-                container.innerHTML = `
-                    <div class="empty-state">
-                        ${reappointmentCandidates.length === 0 ? '재임용 대상자가 없습니다.' : '검색 결과가 없습니다.'}
-                    </div>
-                `;
+                container.innerHTML = `<div class="empty-state">${reappointmentCandidates.length === 0 ? '재임용 대상자가 없습니다.' : '검색 결과가 없습니다.'}</div>`;
                 return;
             }
 
             let html = '<div class="table-wrapper"><table class="table"><thead><tr>';
-            html += '<th>성명</th><th>소속</th><th>직급</th><th>트랙</th>';
-            html += '<th>계약종료일</th><th>남은기간</th><th>상태</th><th>통지마감</th>';
+            html += '<th>성명</th><th>소속</th><th>직급</th><th>계약종료일</th><th>남은기간</th><th>상태</th><th>통지마감</th>';
             html += '</tr></thead><tbody>';
 
-            filteredCandidates.forEach(candidate => {
-                const teacher = candidate.teacher;
-                const track = (teacher['직급'] || '').includes('비정년') ? '비정년' : '정년';
-
-                // 4개월 전 통지 마감일 계산
-                const notificationDeadline = new Date(candidate.endDate);
-                notificationDeadline.setMonth(notificationDeadline.getMonth() - 4);
-                const daysToNotify = DateUtils.getDaysUntil(notificationDeadline, currentBaseDate);
-                let notifyStatus = '';
-                if (daysToNotify < 0) {
-                    notifyStatus = '<span class="badge badge-danger">통지마감 경과</span>';
-                } else if (daysToNotify <= 14) {
-                    notifyStatus = `<span class="badge badge-warning">D-${daysToNotify}</span>`;
-                } else {
-                    notifyStatus = `D-${daysToNotify}`;
-                }
-
-                const statusBadge = candidate.status === 'urgent'
-                    ? '<span class="badge status-urgent">긴급</span>'
-                    : candidate.status === 'warning'
-                    ? '<span class="badge status-warning">주의</span>'
-                    : '<span class="badge status-normal">예정</span>';
+            filteredCandidates.forEach(c => {
+                const t = c.teacher;
+                const notifyDeadline = new Date(c.endDate);
+                notifyDeadline.setMonth(notifyDeadline.getMonth() - 4);
+                const daysToNotify = DateUtils.getDaysUntil(notifyDeadline, currentBaseDate);
+                const notifyStatus = daysToNotify < 0 ? '<span class="badge badge-danger">경과</span>' :
+                    daysToNotify <= 14 ? `<span class="badge badge-warning">D-${daysToNotify}</span>` : `D-${daysToNotify}`;
+                const statusBadge = c.status === 'urgent' ? '<span class="badge status-urgent">긴급</span>' :
+                    c.status === 'warning' ? '<span class="badge status-warning">주의</span>' : '<span class="badge status-normal">예정</span>';
 
                 html += `<tr>
-                    <td>${teacher['성명'] || '-'}</td>
-                    <td>${teacher['소속'] || '-'}</td>
-                    <td>${teacher['직급'] || '-'}</td>
-                    <td>${track}</td>
-                    <td>${DateUtils.formatDate(candidate.endDate)}</td>
-                    <td>${candidate.daysUntil}일 (${candidate.monthsUntil}개월)</td>
+                    <td>${t['성명'] || '-'}</td>
+                    <td>${t['소속'] || '-'}</td>
+                    <td>${t['직급'] || '-'}</td>
+                    <td>${DateUtils.formatDate(c.endDate)}</td>
+                    <td>${c.daysUntil}일</td>
                     <td>${statusBadge}</td>
                     <td>${notifyStatus}</td>
                 </tr>`;
@@ -574,333 +538,154 @@
             container.innerHTML = html;
         }
 
-        // 검색 필터
         function filterTable() {
             const searchTerm = document.getElementById('searchBox').value.toLowerCase();
-
-            filteredCandidates = reappointmentCandidates.filter(candidate => {
-                const teacher = candidate.teacher;
-                const name = (teacher['성명'] || '').toLowerCase();
-                const department = (teacher['소속'] || '').toLowerCase();
-                const rank = (teacher['직급'] || '').toLowerCase();
-
-                const matchesSearch = name.includes(searchTerm) ||
-                       department.includes(searchTerm) ||
-                       rank.includes(searchTerm);
-
-                const matchesStatus = currentFilter === 'all' || candidate.status === currentFilter;
-
-                return matchesSearch && matchesStatus;
+            filteredCandidates = reappointmentCandidates.filter(c => {
+                const t = c.teacher;
+                const matchesSearch = (t['성명'] || '').toLowerCase().includes(searchTerm) ||
+                    (t['소속'] || '').toLowerCase().includes(searchTerm);
+                return matchesSearch && (currentFilter === 'all' || c.status === currentFilter);
             });
-
             updateTable();
         }
 
-        // 상태별 필터
         function filterByStatus(status) {
             currentFilter = status;
-
             document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
             event.target.classList.add('active');
-
             filterTable();
         }
 
-        // ===== 특별 관리 대상 함수 (승진 페이지와 공유) =====
+        // ===== 특별 관리 대상 함수 =====
 
-        const SPECIAL_CASE_KEY = 'specialCaseRecords';
+        function addSpecialRecord(type) {
+            const department = document.getElementById('specialDepartment').value.trim();
+            const name = document.getElementById('specialName').value.trim();
+            const expectedDate = document.getElementById('specialExpectedDate').value.trim();
+            const conclusion = document.getElementById('specialConclusion').value.trim();
 
-        const SPECIAL_TYPE_LABELS = {
-            'reappointment': '재임용 관련',
-            'promotion': '승진 관련',
-            'leave': '휴직/복직 관련',
-            'contract': '계약기간 관련',
-            'other': '기타'
-        };
-
-        const SPECIAL_TYPE_COLORS = {
-            'reappointment': 'var(--color-info)',
-            'promotion': 'var(--color-primary)',
-            'leave': 'var(--color-warning)',
-            'contract': 'var(--color-success)',
-            'other': 'var(--text-secondary)'
-        };
-
-        function getSpecialCases() {
-            const stored = localStorage.getItem(SPECIAL_CASE_KEY);
-            return stored ? JSON.parse(stored) : [];
-        }
-
-        function saveSpecialCases(cases) {
-            localStorage.setItem(SPECIAL_CASE_KEY, JSON.stringify(cases));
-        }
-
-        function loadSpecialCaseList() {
-            const cases = getSpecialCases();
-            const container = document.getElementById('specialCaseList');
-
-            if (cases.length === 0) {
-                container.innerHTML = '<p class="text-center text-muted p-3">등록된 특별 관리 대상이 없습니다.</p>';
+            if (!department || !name) {
+                alert('소속학과와 성명은 필수입니다.');
                 return;
             }
 
-            let html = '<div style="display: flex; flex-direction: column; gap: var(--spacing-md);">';
-
-            cases.forEach((item, index) => {
-                const typeLabel = SPECIAL_TYPE_LABELS[item.type] || item.type;
-                const typeColor = SPECIAL_TYPE_COLORS[item.type] || 'var(--text-secondary)';
-                const addedDate = new Date(item.addedDate);
-                const dateStr = DateUtils.formatDate(addedDate);
-                const detailHtml = (item.detail || '').replace(/\n/g, '<br>');
-
-                html += `
-                    <div style="background: white; border: 1px solid var(--border-color); border-radius: var(--radius-md); border-left: 4px solid ${typeColor}; overflow: hidden;">
-                        <div style="padding: var(--spacing-md);">
-                            <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: var(--spacing-sm);">
-                                <div style="flex: 1;">
-                                    <div style="font-weight: 700; font-size: var(--font-size-xl); margin-bottom: var(--spacing-xs); color: var(--text-primary);">
-                                        ${item.name}
-                                        <span style="color: var(--text-secondary); font-weight: 400; font-size: var(--font-size-md);">(${item.department})</span>
-                                    </div>
-                                    <div style="margin-bottom: var(--spacing-sm);">
-                                        <span class="badge" style="background: ${typeColor}; color: white;">${typeLabel}</span>
-                                        ${item.expectedDate ? `<span class="badge badge-warning">예상: ${item.expectedDate}</span>` : ''}
-                                    </div>
-                                </div>
-                                <div style="display: flex; gap: var(--spacing-xs);">
-                                    <button class="btn btn-sm btn-outline" onclick="editSpecialCase(${index})" title="수정">✏️</button>
-                                    <button class="btn btn-sm btn-danger" onclick="deleteSpecialCase(${index})" title="삭제">🗑️</button>
-                                </div>
-                            </div>
-                            <div style="background: var(--bg-secondary); padding: var(--spacing-md); border-radius: var(--radius-sm); margin-bottom: var(--spacing-sm);">
-                                <div style="font-size: var(--font-size-sm); color: var(--text-primary); line-height: 1.6;">${detailHtml}</div>
-                            </div>
-                            ${item.conclusion ? `
-                                <div style="background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%); padding: var(--spacing-sm) var(--spacing-md); border-radius: var(--radius-sm); margin-bottom: var(--spacing-sm);">
-                                    <strong style="color: var(--color-success);">▶ 결론:</strong>
-                                    <span style="color: var(--text-primary);">${item.conclusion}</span>
-                                </div>
-                            ` : ''}
-                            <div style="color: var(--text-muted); font-size: var(--font-size-xs);">등록일: ${dateStr}</div>
-                        </div>
-                    </div>
-                `;
+            SpecialManagement.addRecord({
+                name, department, type, expectedDate, conclusion
             });
 
-            html += '</div>';
+            // 폼 초기화
+            document.getElementById('specialDepartment').value = '';
+            document.getElementById('specialName').value = '';
+            document.getElementById('specialExpectedDate').value = '';
+            document.getElementById('specialConclusion').value = '';
+
+            loadSpecialList();
+            alert('등록되었습니다.');
+        }
+
+        function loadSpecialList() {
+            const records = SpecialManagement.getRecordsByType('reappointment');
+            const container = document.getElementById('specialList');
+
+            if (records.length === 0) {
+                container.innerHTML = '<div class="empty-state">등록된 특별 관리 대상이 없습니다.</div>';
+                return;
+            }
+
+            let html = '';
+            records.forEach(record => {
+                html += renderSpecialCard(record);
+            });
             container.innerHTML = html;
         }
 
-        function addSpecialCase() {
-            const department = document.getElementById('specialDepartment').value.trim();
-            const name = document.getElementById('specialName').value.trim();
-            const type = document.getElementById('specialType').value;
-            const expectedDate = document.getElementById('specialExpectedDate').value.trim();
-            const detail = document.getElementById('specialDetail').value.trim();
-            const conclusion = document.getElementById('specialConclusion').value.trim();
+        function renderSpecialCard(record) {
+            const tableData = SpecialManagement.buildTableData(record.name, record.department, currentBaseDate);
 
-            if (!department || !name || !type || !detail) {
-                alert('소속학과, 성명, 관리 유형, 상세 내용은 필수입니다.');
-                return;
+            let tableHtml = '';
+            if (tableData.rows.length > 0) {
+                tableHtml = `
+                    <table class="special-table">
+                        <thead>
+                            <tr>
+                                <th>발령시작일</th>
+                                <th>발령종료일</th>
+                                <th>발령구분</th>
+                                <th>기간</th>
+                                <th>승진 countdown</th>
+                                <th>재임용 countdown</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                `;
+
+                tableData.rows.forEach(row => {
+                    let rowClass = '';
+                    if (row.category === 'leave') rowClass = 'leave-row';
+                    else if (row.category === 'return') rowClass = 'return-row';
+                    else if (row.category === 'sick') rowClass = 'sick-row';
+                    else if (row.isCurrent) rowClass = 'current-row';
+
+                    tableHtml += `
+                        <tr class="${rowClass}">
+                            <td>${row.startDate}</td>
+                            <td>${row.endDate}</td>
+                            <td>${row.type}</td>
+                            <td>${row.duration}</td>
+                            <td>${row.promotionCountdown}</td>
+                            <td>${row.reappointmentCountdown}</td>
+                        </tr>
+                    `;
+                });
+
+                tableHtml += '</tbody></table>';
+            } else {
+                tableHtml = '<div class="empty-state">발령사항 데이터가 없습니다. 데이터 관리에서 발령사항 파일을 업로드하세요.</div>';
             }
 
-            const specialCase = {
-                department, name, type, expectedDate, detail, conclusion,
-                addedDate: new Date().toISOString()
-            };
-
-            const cases = getSpecialCases();
-            cases.push(specialCase);
-            saveSpecialCases(cases);
-
-            clearSpecialCaseForm();
-            loadSpecialCaseList();
-            alert('특별 관리 대상이 등록되었습니다.');
+            return `
+                <div class="special-card">
+                    <div class="special-card-header">
+                        <h4>${record.name} (${record.department})</h4>
+                        <span class="badge">재임용 관련 ${record.expectedDate ? '| 예상: ' + record.expectedDate : ''}</span>
+                    </div>
+                    <div class="special-card-body">
+                        ${tableHtml}
+                        ${record.conclusion ? `
+                            <div class="special-conclusion">
+                                <strong>▶ 결론:</strong> ${record.conclusion}
+                            </div>
+                        ` : ''}
+                        <div class="special-actions">
+                            <button class="btn btn-sm btn-outline" onclick="editSpecialRecord('${record.id}')">수정</button>
+                            <button class="btn btn-sm btn-danger" onclick="deleteSpecialRecord('${record.id}')">삭제</button>
+                        </div>
+                    </div>
+                </div>
+            `;
         }
 
-        function clearSpecialCaseForm() {
-            document.getElementById('specialDepartment').value = '';
-            document.getElementById('specialName').value = '';
-            document.getElementById('specialType').value = '';
-            document.getElementById('specialExpectedDate').value = '';
-            document.getElementById('specialDetail').value = '';
-            document.getElementById('specialConclusion').value = '';
+        function deleteSpecialRecord(id) {
+            if (!confirm('삭제하시겠습니까?')) return;
+            SpecialManagement.deleteRecord(id);
+            loadSpecialList();
         }
 
-        function deleteSpecialCase(index) {
-            const cases = getSpecialCases();
-            const item = cases[index];
-            if (!confirm(`${item.name} (${item.department})의 특별 관리 정보를 삭제하시겠습니까?`)) return;
-            cases.splice(index, 1);
-            saveSpecialCases(cases);
-            loadSpecialCaseList();
-        }
+        function editSpecialRecord(id) {
+            const records = SpecialManagement.getRecords();
+            const record = records.find(r => r.id === id);
+            if (!record) return;
 
-        let editingSpecialCaseIndex = null;
+            const newExpected = prompt('예상 처리 시기:', record.expectedDate || '');
+            const newConclusion = prompt('결론/조치사항:', record.conclusion || '');
 
-        function editSpecialCase(index) {
-            const cases = getSpecialCases();
-            const item = cases[index];
-
-            document.getElementById('specialDepartment').value = item.department || '';
-            document.getElementById('specialName').value = item.name || '';
-            document.getElementById('specialType').value = item.type || '';
-            document.getElementById('specialExpectedDate').value = item.expectedDate || '';
-            document.getElementById('specialDetail').value = item.detail || '';
-            document.getElementById('specialConclusion').value = item.conclusion || '';
-
-            editingSpecialCaseIndex = index;
-
-            const addBtn = document.querySelector('#tab-special .btn-primary');
-            addBtn.textContent = '특별 관리 대상 수정';
-            addBtn.onclick = saveEditedSpecialCase;
-
-            if (!document.getElementById('cancelSpecialEditBtn')) {
-                const cancelBtn = document.createElement('button');
-                cancelBtn.id = 'cancelSpecialEditBtn';
-                cancelBtn.className = 'btn btn-outline';
-                cancelBtn.textContent = '취소';
-                cancelBtn.style.marginLeft = 'var(--spacing-sm)';
-                cancelBtn.onclick = cancelSpecialEdit;
-                addBtn.parentNode.appendChild(cancelBtn);
+            if (newExpected !== null || newConclusion !== null) {
+                SpecialManagement.updateRecord(id, {
+                    expectedDate: newExpected || record.expectedDate,
+                    conclusion: newConclusion || record.conclusion
+                });
+                loadSpecialList();
             }
-
-            document.getElementById('specialDepartment').focus();
-        }
-
-        function saveEditedSpecialCase() {
-            if (editingSpecialCaseIndex === null) return;
-
-            const department = document.getElementById('specialDepartment').value.trim();
-            const name = document.getElementById('specialName').value.trim();
-            const type = document.getElementById('specialType').value;
-            const expectedDate = document.getElementById('specialExpectedDate').value.trim();
-            const detail = document.getElementById('specialDetail').value.trim();
-            const conclusion = document.getElementById('specialConclusion').value.trim();
-
-            if (!department || !name || !type || !detail) {
-                alert('소속학과, 성명, 관리 유형, 상세 내용은 필수입니다.');
-                return;
-            }
-
-            const cases = getSpecialCases();
-            const item = cases[editingSpecialCaseIndex];
-            item.department = department;
-            item.name = name;
-            item.type = type;
-            item.expectedDate = expectedDate;
-            item.detail = detail;
-            item.conclusion = conclusion;
-
-            saveSpecialCases(cases);
-            cancelSpecialEdit();
-            loadSpecialCaseList();
-            alert('특별 관리 대상이 수정되었습니다.');
-        }
-
-        function cancelSpecialEdit() {
-            editingSpecialCaseIndex = null;
-            clearSpecialCaseForm();
-
-            const addBtn = document.querySelector('#tab-special .btn-primary');
-            addBtn.textContent = '특별 관리 대상 등록';
-            addBtn.onclick = addSpecialCase;
-
-            const cancelBtn = document.getElementById('cancelSpecialEditBtn');
-            if (cancelBtn) cancelBtn.remove();
-        }
-
-        // 초기 데이터 세팅 (승진 페이지와 공유하므로 이미 있으면 건너뜀)
-        function initializeSpecialCases() {
-            // 승진 페이지에서 이미 초기화했으면 건너뜀
-            const cases = getSpecialCases();
-            if (cases.length > 0) return;
-
-            const initialData = [
-                {
-                    department: '체육학과',
-                    name: '장미란',
-                    type: 'reappointment',
-                    expectedDate: '2026학년도 2학기',
-                    detail: `2021.09.01.~2024.08.31. 재임용(3년 / 36개월)
-2021.09.01. ~ 2023.07.02. - 1년 10개월 2일(22개월 2일) / 잔여근무 1년 1개월 28일(13개월 28일)
-2023.07.03. ~ 2025.08.13. - 고용휴직
-2025.08.14. ~ 2026.10.11. - 1년 1개월 28일
-2025년 8월 14일 복직 후 2027년 3월 재임용 대상자`,
-                    conclusion: '2026학년도 2학기 재임용 진행',
-                    addedDate: new Date().toISOString()
-                },
-                {
-                    department: '유도학과',
-                    name: '김판수',
-                    type: 'reappointment',
-                    expectedDate: '2027년 9월',
-                    detail: `2019.04.01. ~ 2026.03.31. - 승진임용(7년 / 84개월)
-2019.04.01. ~ 2020.09.07. - 1년 5개월(17개월) / 잔여근무 5년 7개월(67개월)
-2020.09.08. ~ 2021.08.31. - 육아휴직(11개월 23일)
-2021.09.01. ~ 2025.02.28. - 3년 6개월(42개월) / 잔여근무 2년 1개월(25개월)
-2025.03.01. ~ 2027.03.31. - 2년 1개월(25개월) / 잔여근무 0개월
-학기중 임용기간 만료로 2027년 9월 재임용 대상자`,
-                    conclusion: '2027년 9월 재임용 대상자',
-                    addedDate: new Date().toISOString()
-                },
-                {
-                    department: '골프학과',
-                    name: '김순희',
-                    type: 'reappointment',
-                    expectedDate: '2029년 2학기',
-                    detail: `2020.03.01. ~ 2022.02.28. - 재임용기간(2년 / 24개월)
-2020.03.01. ~ 2020.04.15. - 1개월 16일 / 잔여근무 22개월 14일
-2020.04.16. ~ 2024.04.15. - 고용휴직(4년)
-2024.04.16. ~ 2025.02.28. - 고용휴직(10개월 15일)
-2025.03.01. ~ 2028.04.08. - 고용휴직(3년 1개월 8일) / 잔여근무 22개월 14일
-2028년 4월 8일 복직 후 2030년 3월 재임용 대상자`,
-                    conclusion: '2029년 2학기 재임용 진행',
-                    addedDate: new Date().toISOString()
-                },
-                {
-                    department: '영화영상학과',
-                    name: '이제희',
-                    type: 'reappointment',
-                    expectedDate: '2025년 2학기',
-                    detail: `2020.03.01. ~ 2023.02.28. - 최초임용(3년 / 36개월)
-2020.03.01. ~ 2020.08.31. - 6개월 / 잔여근무 2년 6개월(30개월)
-2020.09.01. ~ 2021.08.31. - 육아휴직(1년)
-2021.09.01. ~ 2023.04.30. - 1년 8개월(20개월) / 잔여근무 10개월
-2023.05.01. ~ 2024.02.28. - 질병휴직(9개월 28일)
-2024.03.01. ~ 2024.08.31. - 6개월 / 잔여근무 4개월
-2025.09.01. 복직 후 2025.12.31. 계약만료로 학기중 계약 만료되어 2026년 3월 재임용 대상`,
-                    conclusion: '2025년 2학기 재임용 절차 진행',
-                    addedDate: new Date().toISOString()
-                },
-                {
-                    department: '유도경기지도학과',
-                    name: '이원희',
-                    type: 'promotion',
-                    expectedDate: '2025년 10월 1일',
-                    detail: `<2025년 10월 1일 기준>
-2017.03.01. ~ 2017.08.31. - 6개월 근무
-2017.09.01. ~ 2019.08.31. – 휴직 2년(학위취득)
-2019.09.01. ~ 2023.08.31. – 4년
-2023.09.01. ~ 2024.01.07. – 휴직 4개월 7일(육아)
-2024.01.08. ~ 2025.10.01. – 1년 8개월
-=> 6년 2개월(부교수 승진)`,
-                    conclusion: '2025년 10월 부교수 승진 대상',
-                    addedDate: new Date().toISOString()
-                },
-                {
-                    department: '영화영상학과',
-                    name: '장건재',
-                    type: 'contract',
-                    expectedDate: '2029년 9월 30일',
-                    detail: `2028년 9월 30일까지 임용기간이지만 연구년 연장 사유로 1년 휴직하여
-2029년 9월 30일 임용 만료됨`,
-                    conclusion: '연구년 연장으로 임용 만료일 2029년 9월 30일로 변경',
-                    addedDate: new Date().toISOString()
-                }
-            ];
-
-            saveSpecialCases(initialData);
         }
     </script>
 </body>
