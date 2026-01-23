@@ -77,6 +77,27 @@ const SpecialManagement = {
 
         if (!start || !end) return '-';
 
+        const startDay = start.getDate();
+        const endDay = end.getDate();
+        const lastDayOfEndMonth = new Date(end.getFullYear(), end.getMonth() + 1, 0).getDate();
+
+        // 시작일이 1일이고 종료일이 월말인 경우 (임용 기간 등)
+        // 예: 2021.09.01 ~ 2024.08.31 = 정확히 3년 (36개월)
+        if (startDay === 1 && endDay === lastDayOfEndMonth) {
+            const totalMonths = (end.getFullYear() - start.getFullYear()) * 12 +
+                               (end.getMonth() - start.getMonth()) + 1;
+            const years = Math.floor(totalMonths / 12);
+            const months = totalMonths % 12;
+
+            const parts = [];
+            if (years > 0) parts.push(`${years}년`);
+            if (months > 0) parts.push(`${months}개월`);
+
+            if (parts.length === 0) return '-';
+            return `${parts.join(' ')} (${totalMonths}개월)`;
+        }
+
+        // 일반적인 경우 (일 단위 계산)
         let years = end.getFullYear() - start.getFullYear();
         let months = end.getMonth() - start.getMonth();
         let days = end.getDate() - start.getDate() + 1; // 포함
