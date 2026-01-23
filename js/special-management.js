@@ -279,7 +279,8 @@ const SpecialManagement = {
     },
 
     // 테이블 데이터 생성
-    buildTableData(name, department, baseDate = new Date()) {
+    // expectedInfo: { startDate, endDate, type: 'promotion' | 'reappointment' }
+    buildTableData(name, department, baseDate = new Date(), expectedInfo = null) {
         const appointments = this.getAppointmentData(name, department);
         const faculty = this.getFacultyStatus(name, department);
 
@@ -399,6 +400,49 @@ const SpecialManagement = {
                     isCurrent: true
                 });
             }
+        }
+
+        // 예정 행 추가 (재임용 예정 또는 승진 예정)
+        if (expectedInfo && expectedInfo.startDate) {
+            const expStartDate = this.parseDate(expectedInfo.startDate);
+            let expEndDate = expectedInfo.endDate ? this.parseDate(expectedInfo.endDate) : null;
+
+            // 종료일이 없으면 자동 계산 (재임용: 3년, 승진: 6년)
+            if (expStartDate && !expEndDate) {
+                expEndDate = new Date(expStartDate);
+                if (expectedInfo.type === 'promotion') {
+                    expEndDate.setFullYear(expEndDate.getFullYear() + 6);
+                } else {
+                    expEndDate.setFullYear(expEndDate.getFullYear() + 3);
+                }
+                expEndDate.setDate(expEndDate.getDate() - 1); // 전날까지
+            }
+
+            const expType = expectedInfo.type === 'promotion' ? '승진 예정' : '재임용 예정';
+            const expDuration = expStartDate && expEndDate ? this.calculateDuration(expStartDate, expEndDate) : '-';
+
+            // 예정 기간 동안의 카운트다운 계산
+            let expPromotionDays = promotionWorkingDays;
+            let expReappointmentDays = reappointmentWorkingDays;
+
+            if (expStartDate && expEndDate) {
+                const expPeriodDays = Math.ceil((expEndDate - expStartDate) / (1000 * 60 * 60 * 24)) + 1;
+                expPromotionDays += expPeriodDays;
+                if (lastReappointmentDate || expectedInfo.type === 'reappointment') {
+                    expReappointmentDays += expPeriodDays;
+                }
+            }
+
+            rows.push({
+                startDate: this.formatDate(expStartDate),
+                endDate: this.formatDate(expEndDate),
+                type: expType,
+                category: 'expected',
+                duration: expDuration,
+                promotionCountdown: this.daysToText(expPromotionDays),
+                reappointmentCountdown: this.daysToText(expReappointmentDays),
+                isExpected: true
+            });
         }
 
         return {
