@@ -6,6 +6,36 @@
 const SpecialManagement = {
     STORAGE_KEY: 'specialManagementRecords',
 
+    // 캐시 (성능 최적화)
+    _cache: {
+        appointmentData: null,
+        facultyData: null,
+        lastUpdate: 0
+    },
+
+    // 캐시 초기화 (데이터 변경 시 호출)
+    clearCache() {
+        this._cache.appointmentData = null;
+        this._cache.facultyData = null;
+        this._cache.lastUpdate = 0;
+    },
+
+    // 캐시된 발령사항 데이터 가져오기
+    _getCachedAppointmentData() {
+        if (!this._cache.appointmentData) {
+            this._cache.appointmentData = StorageUtils.get('appointmentData') || {};
+        }
+        return this._cache.appointmentData;
+    },
+
+    // 캐시된 교원현황 데이터 가져오기
+    _getCachedFacultyData() {
+        if (!this._cache.facultyData) {
+            this._cache.facultyData = StorageUtils.get('facultyData') || [];
+        }
+        return this._cache.facultyData;
+    },
+
     // 특별 관리 대상 목록 가져오기
     getRecords() {
         const stored = localStorage.getItem(this.STORAGE_KEY);
@@ -52,16 +82,16 @@ const SpecialManagement = {
         return records.filter(r => r.type === type);
     },
 
-    // 발령사항 데이터 가져오기 (교원별)
+    // 발령사항 데이터 가져오기 (교원별) - 캐시 사용
     getAppointmentData(name, department) {
-        const allData = StorageUtils.get('appointmentData') || {};
+        const allData = this._getCachedAppointmentData();
         const key = `${name}_${department}`;
         return allData[key]?.appointments || [];
     },
 
-    // 교원현황에서 현재 재직 상태 확인
+    // 교원현황에서 현재 재직 상태 확인 - 캐시 사용
     getFacultyStatus(name, department) {
-        const facultyData = StorageUtils.get('facultyData') || [];
+        const facultyData = this._getCachedFacultyData();
         return facultyData.find(f =>
             f['성명'] === name &&
             (f['소속'] === department || f['소속']?.includes(department))
