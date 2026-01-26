@@ -212,6 +212,43 @@ const SpecialManagement = {
         return 'other';
     },
 
+    // 두 날짜 사이의 개월 수 계산 (행정적 기준)
+    calculateMonthsBetween(startDate, endDate) {
+        if (!startDate || !endDate) return 0;
+
+        const start = this.parseDate(startDate);
+        const end = this.parseDate(endDate);
+        if (!start || !end) return 0;
+
+        const startDay = start.getDate();
+        const endDay = end.getDate();
+        const lastDayOfEndMonth = new Date(end.getFullYear(), end.getMonth() + 1, 0).getDate();
+
+        // 시작일이 1일이고 종료일이 월말인 경우 정확한 개월 수 계산
+        if (startDay === 1 && endDay === lastDayOfEndMonth) {
+            return (end.getFullYear() - start.getFullYear()) * 12 +
+                   (end.getMonth() - start.getMonth()) + 1;
+        }
+
+        // 그 외의 경우 일수 기반 계산
+        const days = Math.ceil((end - start) / (1000 * 60 * 60 * 24)) + 1;
+        return days / 30; // 대략적인 개월 수
+    },
+
+    // 개월 수를 텍스트로 변환
+    monthsToText(months) {
+        if (months <= 0) return '-';
+
+        const years = Math.floor(months / 12);
+        const remainingMonths = Math.round(months % 12);
+
+        const parts = [];
+        if (years > 0) parts.push(`${years}년`);
+        if (remainingMonths > 0) parts.push(`${remainingMonths}개월`);
+
+        return parts.join(' ') || '-';
+    },
+
     // 근무 기간 누적 계산 (휴직 제외, 병가 포함)
     calculateWorkingPeriod(appointments, startFromDate, endAtDate, excludeLeave = true) {
         if (!appointments || appointments.length === 0) return { days: 0, text: '-' };
@@ -310,7 +347,8 @@ const SpecialManagement = {
 
     // 테이블 데이터 생성
     // expectedInfo: { startDate, endDate, type: 'promotion' | 'reappointment' }
-    buildTableData(name, department, baseDate = new Date(), expectedInfo = null) {
+    // viewType: 'promotion' | 'reappointment' - 어떤 탭에서 보는지
+    buildTableData(name, department, baseDate = new Date(), expectedInfo = null, viewType = null) {
         const appointments = this.getAppointmentData(name, department);
         const faculty = this.getFacultyStatus(name, department);
 
@@ -329,9 +367,9 @@ const SpecialManagement = {
         let initialAppointmentDate = null;  // 최초 임용일
         let lastReappointmentDate = null;   // 마지막 재임용일
         let lastReappointmentEndDate = null; // 마지막 재임용 종료일
-        let promotionWorkingDays = 0;
-        let reappointmentWorkingDays = 0;
-        let totalLeaveDays = 0;             // 총 휴직 일수
+        let promotionWorkingMonths = 0;     // 승진용 누적 개월 (개월 단위)
+        let reappointmentWorkingMonths = 0; // 재임용용 누적 개월 (개월 단위)
+        let totalLeaveMonths = 0;           // 총 휴직 개월
         let leavePeriodsForPromotion = [];  // 승진용 휴직 기록
         let leavePeriodsForReappointment = []; // 재임용용 휴직 기록
         let currentRank = faculty ? faculty['직급'] : '조교수';
@@ -355,19 +393,19 @@ const SpecialManagement = {
             if (category === 'reappointment') {
                 lastReappointmentDate = start;
                 lastReappointmentEndDate = end;
-                reappointmentWorkingDays = 0;
+                reappointmentWorkingMonths = 0;
                 leavePeriodsForReappointment = [];
             }
 
-            // 휴직 기간 기록
+            // 휴직 기간 기록 (개월 단위)
             if (category === 'leave' && start && end) {
-                const leaveDays = Math.ceil((end - start) / (1000 * 60 * 60 * 24)) + 1;
-                totalLeaveDays += leaveDays;
+                const leaveMonths = this.calculateMonthsBetween(start, end);
+                totalLeaveMonths += leaveMonths;
 
                 const leaveInfo = {
                     type: type,
-                    days: leaveDays,
-                    text: this.daysToText(leaveDays)
+                    months: leaveMonths,
+                    text: this.monthsToText(leaveMonths)
                 };
 
                 leavePeriodsForPromotion.push(leaveInfo);
@@ -382,27 +420,27 @@ const SpecialManagement = {
                 duration = this.calculateDuration(startDate, endDate);
             }
 
-            // 승진 카운트다운 (휴직 제외, 병가 포함)
+            // 승진 카운트다운 (휴직 제외, 병가 포함) - 개월 단위
             let promotionCountdown = '-';
             if (category !== 'return' && category !== 'sick') {
                 if (category === 'leave') {
                     promotionCountdown = '-';
                 } else if (start && end) {
-                    const days = Math.ceil((end - start) / (1000 * 60 * 60 * 24)) + 1;
-                    promotionWorkingDays += days;
-                    promotionCountdown = this.daysToText(promotionWorkingDays);
+                    const months = this.calculateMonthsBetween(start, end);
+                    promotionWorkingMonths += months;
+                    promotionCountdown = this.monthsToText(promotionWorkingMonths);
                 }
             }
 
-            // 재임용 카운트다운
+            // 재임용 카운트다운 - 개월 단위
             let reappointmentCountdown = '-';
             if (lastReappointmentDate && category !== 'return') {
                 if (category === 'leave') {
                     reappointmentCountdown = '-';
                 } else if (category !== 'sick' && start && end && start >= lastReappointmentDate) {
-                    const days = Math.ceil((end - start) / (1000 * 60 * 60 * 24)) + 1;
-                    reappointmentWorkingDays += days;
-                    reappointmentCountdown = this.daysToText(reappointmentWorkingDays);
+                    const months = this.calculateMonthsBetween(start, end);
+                    reappointmentWorkingMonths += months;
+                    reappointmentCountdown = this.monthsToText(reappointmentWorkingMonths);
                 }
             }
 
@@ -413,14 +451,15 @@ const SpecialManagement = {
                 reappointmentCountdown = '-';
             }
 
+            // viewType에 따라 표시할 countdown 결정
             rows.push({
                 startDate: this.formatDate(startDate),
                 endDate: this.formatDate(endDate),
                 type: type,
                 category: category,
                 duration: duration,
-                promotionCountdown: promotionCountdown,
-                reappointmentCountdown: reappointmentCountdown
+                promotionCountdown: viewType === 'reappointment' ? null : promotionCountdown,
+                reappointmentCountdown: viewType === 'promotion' ? null : reappointmentCountdown
             });
         });
 
@@ -439,16 +478,16 @@ const SpecialManagement = {
             }
 
             if (currentStartDate) {
-                const days = Math.ceil((baseDate - currentStartDate) / (1000 * 60 * 60 * 24)) + 1;
-                promotionWorkingDays += days;
+                const currentMonths = this.calculateMonthsBetween(currentStartDate, baseDate);
+                promotionWorkingMonths += currentMonths;
                 if (lastReappointmentDate) {
-                    reappointmentWorkingDays += days;
+                    reappointmentWorkingMonths += currentMonths;
                 }
 
                 // 상세 승진 카운트다운 생성
                 const promotionDetail = this._buildPromotionCountdownDetail(
                     initialAppointmentDate,
-                    promotionWorkingDays,
+                    promotionWorkingMonths,
                     leavePeriodsForPromotion,
                     currentRank,
                     baseDate
@@ -459,7 +498,7 @@ const SpecialManagement = {
                     this._buildReappointmentCountdownDetail(
                         lastReappointmentDate,
                         lastReappointmentEndDate,
-                        reappointmentWorkingDays,
+                        reappointmentWorkingMonths,
                         leavePeriodsForReappointment,
                         baseDate
                     ) : '-';
@@ -469,9 +508,9 @@ const SpecialManagement = {
                     endDate: this.formatDate(baseDate),
                     type: '재직',
                     category: 'working',
-                    duration: this.daysToText(days),
-                    promotionCountdown: promotionDetail,
-                    reappointmentCountdown: reappointmentDetail,
+                    duration: this.monthsToText(currentMonths),
+                    promotionCountdown: viewType === 'reappointment' ? null : promotionDetail,
+                    reappointmentCountdown: viewType === 'promotion' ? null : reappointmentDetail,
                     isCurrent: true
                 });
             }
@@ -495,14 +534,14 @@ const SpecialManagement = {
             const expType = expectedInfo.type === 'promotion' ? '승진 예정' : '재임용 예정';
             const expDuration = expStartDate && expEndDate ? this.calculateDuration(expStartDate, expEndDate) : '-';
 
-            let expPromotionDays = promotionWorkingDays;
-            let expReappointmentDays = reappointmentWorkingDays;
+            let expPromotionMonths = promotionWorkingMonths;
+            let expReappointmentMonths = reappointmentWorkingMonths;
 
             if (expStartDate && expEndDate) {
-                const expPeriodDays = Math.ceil((expEndDate - expStartDate) / (1000 * 60 * 60 * 24)) + 1;
-                expPromotionDays += expPeriodDays;
+                const expPeriodMonths = this.calculateMonthsBetween(expStartDate, expEndDate);
+                expPromotionMonths += expPeriodMonths;
                 if (lastReappointmentDate || expectedInfo.type === 'reappointment') {
-                    expReappointmentDays += expPeriodDays;
+                    expReappointmentMonths += expPeriodMonths;
                 }
             }
 
@@ -512,8 +551,8 @@ const SpecialManagement = {
                 type: expType,
                 category: 'expected',
                 duration: expDuration,
-                promotionCountdown: this.daysToText(expPromotionDays),
-                reappointmentCountdown: this.daysToText(expReappointmentDays),
+                promotionCountdown: viewType === 'reappointment' ? null : this.monthsToText(expPromotionMonths),
+                reappointmentCountdown: viewType === 'promotion' ? null : this.monthsToText(expReappointmentMonths),
                 isExpected: true
             });
         }
@@ -521,47 +560,48 @@ const SpecialManagement = {
         return {
             rows: rows,
             summary: {
-                totalPromotionDays: promotionWorkingDays,
-                totalPromotionText: this.daysToText(promotionWorkingDays),
-                totalReappointmentDays: reappointmentWorkingDays,
-                totalReappointmentText: this.daysToText(reappointmentWorkingDays),
-                totalLeaveDays: totalLeaveDays
-            }
+                totalPromotionMonths: promotionWorkingMonths,
+                totalPromotionText: this.monthsToText(promotionWorkingMonths),
+                totalReappointmentMonths: reappointmentWorkingMonths,
+                totalReappointmentText: this.monthsToText(reappointmentWorkingMonths),
+                totalLeaveMonths: totalLeaveMonths
+            },
+            viewType: viewType
         };
     },
 
-    // 승진 카운트다운 상세 정보 생성
-    _buildPromotionCountdownDetail(initialDate, workingDays, leavePeriods, currentRank, baseDate) {
+    // 승진 카운트다운 상세 정보 생성 (개월 단위)
+    _buildPromotionCountdownDetail(initialDate, workingMonths, leavePeriods, currentRank, baseDate) {
         if (!initialDate) {
-            return this.daysToText(workingDays);
+            return this.monthsToText(workingMonths);
         }
 
         const promotionYears = currentRank === '조교수' ? 6 : 8;
         const nextRank = currentRank === '조교수' ? '부교수' : '교수';
-        const requiredDays = promotionYears * 365;
+        const requiredMonths = promotionYears * 12;
 
         // 원래 승진 예정일 (휴직 없었을 경우)
         const originalPromotionDate = new Date(initialDate);
         originalPromotionDate.setFullYear(originalPromotionDate.getFullYear() + promotionYears);
 
-        // 총 휴직 일수
-        const totalLeaveDays = leavePeriods.reduce((sum, p) => sum + p.days, 0);
+        // 총 휴직 개월
+        const totalLeaveMonths = leavePeriods.reduce((sum, p) => sum + (p.months || 0), 0);
 
         // 조정된 승진 예정일
         const adjustedPromotionDate = new Date(originalPromotionDate);
-        adjustedPromotionDate.setDate(adjustedPromotionDate.getDate() + totalLeaveDays);
+        adjustedPromotionDate.setMonth(adjustedPromotionDate.getMonth() + Math.round(totalLeaveMonths));
 
-        // 남은 일수
-        const remainingDays = requiredDays - workingDays;
-        const workingText = this.daysToText(workingDays);
+        // 남은 개월
+        const remainingMonths = requiredMonths - workingMonths;
+        const workingText = this.monthsToText(workingMonths);
 
-        if (remainingDays <= 0) {
+        if (remainingMonths <= 0) {
             return `${workingText} (${nextRank} 승진 요건 충족)`;
         }
 
         let detail = `${workingText}`;
 
-        if (totalLeaveDays > 0 && leavePeriods.length > 0) {
+        if (totalLeaveMonths > 0 && leavePeriods.length > 0) {
             const leaveList = leavePeriods.map(p => `${p.type} ${p.text}`).join(', ');
             detail += `\n[${nextRank} 승진] 원래 ${this.formatDate(originalPromotionDate)} 예정 → 휴직(${leaveList})으로 ${this.formatDate(adjustedPromotionDate)}로 연기`;
         } else {
@@ -571,22 +611,22 @@ const SpecialManagement = {
         return detail;
     },
 
-    // 재임용 카운트다운 상세 정보 생성
-    _buildReappointmentCountdownDetail(reappointmentDate, contractEndDate, workingDays, leavePeriods, baseDate) {
+    // 재임용 카운트다운 상세 정보 생성 (개월 단위)
+    _buildReappointmentCountdownDetail(reappointmentDate, contractEndDate, workingMonths, leavePeriods, baseDate) {
         if (!reappointmentDate || !contractEndDate) {
-            return this.daysToText(workingDays);
+            return this.monthsToText(workingMonths);
         }
 
-        const workingText = this.daysToText(workingDays);
-        const totalLeaveDays = leavePeriods.reduce((sum, p) => sum + p.days, 0);
+        const workingText = this.monthsToText(workingMonths);
+        const totalLeaveMonths = leavePeriods.reduce((sum, p) => sum + (p.months || 0), 0);
 
         // 조정된 재임용 만료일
         const adjustedEndDate = new Date(contractEndDate);
-        adjustedEndDate.setDate(adjustedEndDate.getDate() + totalLeaveDays);
+        adjustedEndDate.setMonth(adjustedEndDate.getMonth() + Math.round(totalLeaveMonths));
 
         let detail = `${workingText}`;
 
-        if (totalLeaveDays > 0 && leavePeriods.length > 0) {
+        if (totalLeaveMonths > 0 && leavePeriods.length > 0) {
             const leaveList = leavePeriods.map(p => `${p.type} ${p.text}`).join(', ');
             detail += `\n[재임용] 원래 ${this.formatDate(contractEndDate)} 만료 → 휴직(${leaveList})으로 ${this.formatDate(adjustedEndDate)}로 연장`;
         } else {

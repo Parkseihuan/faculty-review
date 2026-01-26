@@ -2022,7 +2022,8 @@
         }
 
         function loadSpecialList() {
-            const records = SpecialManagement.getRecordsByType('promotion');
+            // 모든 특별 관리 대상을 표시 (승진/재임용 모두)
+            const records = SpecialManagement.getRecords();
             const container = document.getElementById('specialList');
 
             if (records.length === 0) {
@@ -2042,10 +2043,11 @@
             const expectedInfo = record.expectedStartDate ? {
                 startDate: record.expectedStartDate,
                 endDate: record.expectedEndDate || null,
-                type: record.type
+                type: 'promotion'
             } : null;
 
-            const tableData = SpecialManagement.buildTableData(record.name, record.department, currentBaseDate, expectedInfo);
+            // 승진 탭이므로 viewType = 'promotion' 전달
+            const tableData = SpecialManagement.buildTableData(record.name, record.department, currentBaseDate, expectedInfo, 'promotion');
 
             let tableHtml = '';
             if (tableData.rows.length > 0) {
@@ -2058,7 +2060,6 @@
                                 <th>발령구분</th>
                                 <th>기간</th>
                                 <th>승진 countdown</th>
-                                <th>재임용 countdown</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -2079,7 +2080,6 @@
                             <td>${row.type}</td>
                             <td>${row.duration}</td>
                             <td class="countdown-cell">${(row.promotionCountdown || '-').replace(/\\n/g, '<br>')}</td>
-                            <td class="countdown-cell">${(row.reappointmentCountdown || '-').replace(/\\n/g, '<br>')}</td>
                         </tr>
                     `;
                 });
