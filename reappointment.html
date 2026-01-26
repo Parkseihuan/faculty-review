@@ -240,6 +240,14 @@
             color: #004085;
         }
 
+        .special-table .countdown-cell {
+            text-align: left;
+            font-size: var(--font-size-xs);
+            line-height: 1.5;
+            white-space: pre-line;
+            min-width: 180px;
+        }
+
         .special-conclusion {
             background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
             padding: var(--spacing-md);
@@ -655,8 +663,8 @@
                             <td>${row.endDate}</td>
                             <td>${row.type}</td>
                             <td>${row.duration}</td>
-                            <td>${row.promotionCountdown}</td>
-                            <td>${row.reappointmentCountdown}</td>
+                            <td class="countdown-cell">${(row.promotionCountdown || '-').replace(/\\n/g, '<br>')}</td>
+                            <td class="countdown-cell">${(row.reappointmentCountdown || '-').replace(/\\n/g, '<br>')}</td>
                         </tr>
                     `;
                 });
