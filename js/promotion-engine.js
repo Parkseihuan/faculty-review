@@ -55,6 +55,9 @@ class PromotionEngine {
     constructor(baseDate = new Date()) {
         this.baseDate = new Date(baseDate.getFullYear(), baseDate.getMonth(), baseDate.getDate());
 
+        // 캐시 (성능 최적화)
+        this._appointmentDataCache = null;
+
         // 교원인사규정 제15조 - 승진 소요 연한
         // 교원인사규정 제15조 [자격 및 절차]
         //
@@ -88,15 +91,19 @@ class PromotionEngine {
     }
 
     /**
-     * 교원의 발령사항 데이터 조회
+     * 교원의 발령사항 데이터 조회 (캐시 사용)
      */
     getAppointmentHistory(teacher) {
-        const appointmentData = JSON.parse(localStorage.getItem(this.APPOINTMENT_DATA_KEY) || '{}');
+        // 캐시된 데이터 사용
+        if (!this._appointmentDataCache) {
+            this._appointmentDataCache = JSON.parse(localStorage.getItem(this.APPOINTMENT_DATA_KEY) || '{}');
+        }
+
         const name = teacher['성명'];
         const department = teacher['소속'];
         const key = `${name}_${department}`;
 
-        return appointmentData[key] || null;
+        return this._appointmentDataCache[key] || null;
     }
 
     /**
